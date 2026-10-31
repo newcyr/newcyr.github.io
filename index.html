@@ -325,6 +325,94 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
 .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease),transform .8s var(--ease);transition-delay:var(--d,0ms)}
 .reveal.in{opacity:1;transform:none}
 
+/* ============================================================
+   MOTION LAYER — Lenis smooth scroll · masked titles · rail
+   ============================================================ */
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
+.lenis.lenis-stopped{overflow:hidden}
+
+.scroll-progress{position:fixed;left:0;top:0;width:100%;height:2px;z-index:210;background:var(--grad);
+  transform:scaleX(0);transform-origin:0 50%;pointer-events:none;will-change:transform}
+
+/* header hide on scroll down */
+.site-header{transform:translateY(0);transition:background-color .45s ease,border-color .3s ease,box-shadow .3s ease,transform .55s var(--ease)}
+.site-header.hide{transform:translateY(-102%)}
+
+/* masked line titles */
+.split{display:block}
+.split .line{display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em}
+.split .line-in{display:block;will-change:transform;transform:translate3d(0,112%,0);transition:transform 1.08s cubic-bezier(.16,1,.3,1)}
+.split .line:nth-child(2) .line-in{transition-delay:.09s}
+.split .line:nth-child(3) .line-in{transition-delay:.18s}
+.split .line:nth-child(4) .line-in{transition-delay:.27s}
+.split.in .line-in{transform:none}
+
+/* hero entrance */
+.eyebrow,.hero-sub,.hero-actions,.hero-notes{opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform 1s var(--ease)}
+body.loaded .eyebrow{opacity:1;transform:none;transition-delay:.3s}
+body.loaded .hero-sub{opacity:1;transform:none;transition-delay:.46s}
+body.loaded .hero-actions{opacity:1;transform:none;transition-delay:.6s}
+body.loaded .hero-notes{opacity:1;transform:none;transition-delay:.72s}
+.workspace{opacity:0;transform:perspective(1400px) rotateX(12deg) translateY(46px) scale(.97);
+  transition:opacity 1.05s ease .3s,transform 1.35s cubic-bezier(.16,1,.3,1) .3s}
+body.loaded .workspace{opacity:1;transform:perspective(1400px) rotateX(0) translateY(0) scale(1)}
+.art-glow{opacity:0;transition:opacity 1.5s ease .15s}
+body.loaded .art-glow{opacity:1}
+
+.hero-scroll-cue{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:3;
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+  font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-3);
+  opacity:0;transition:opacity .7s ease 1s}
+body.loaded .hero-scroll-cue{opacity:1}
+.hero-scroll-cue i{width:1px;height:36px;background:var(--line-strong);position:relative;overflow:hidden;display:block}
+.hero-scroll-cue i::after{content:"";position:absolute;left:0;top:-60%;width:100%;height:58%;background:var(--brand);animation:cueDrop 1.9s cubic-bezier(.6,0,.3,1) infinite}
+@keyframes cueDrop{0%{top:-60%}70%,100%{top:110%}}
+
+/* marquee */
+.marquee{position:relative;overflow:hidden;padding:clamp(16px,2.2vw,28px) 0;border-top:1px solid var(--line);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.marquee-track{display:flex;width:max-content;animation:marquee 34s linear infinite;will-change:transform}
+.marquee-track span{display:block;white-space:nowrap;padding-right:clamp(30px,4vw,60px);
+  font-size:clamp(20px,3.2vw,40px);font-weight:700;letter-spacing:-.01em;text-transform:uppercase;line-height:1.1;
+  color:transparent;-webkit-text-stroke:1px var(--line-strong)}
+.marquee-track span em{font-style:normal;-webkit-text-stroke:0;color:var(--brand);opacity:.9}
+@keyframes marquee{to{transform:translate3d(-50%,0,0)}}
+
+/* products rail */
+.products.rail{padding:0;height:calc(100vh + var(--rail-x,0px));position:relative}
+.rail-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center;
+  gap:clamp(20px,3.4vh,42px);overflow:hidden}
+.rail-head{width:min(1200px,calc(100% - 48px));margin-inline:auto}
+.rail-viewport{overflow:visible}
+.rail-track{display:flex;gap:20px;width:max-content;margin-top:0;will-change:transform;
+  padding-inline:max(24px,calc((100vw - 1200px)/2))}
+.rail-track .product-card{flex:0 0 clamp(300px,25vw,356px);width:clamp(300px,25vw,356px);
+  min-height:clamp(306px,44vh,420px);margin-top:0}
+.rail-hint{display:flex;align-items:center;justify-content:center;gap:12px;
+  font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.rail-hint svg{width:30px;height:10px;overflow:visible}
+.rail-hint .h-line{display:block;width:46px;height:1px;background:var(--line-strong);position:relative}
+.rail-hint .h-line::after{content:"";position:absolute;top:0;left:-14%;width:30%;height:100%;background:var(--brand);animation:hintSweep 2s cubic-bezier(.6,0,.3,1) infinite}
+@keyframes hintSweep{0%{left:-30%}60%,100%{left:100%}}
+
+/* stats counters */
+.stat b{font-variant-numeric:tabular-nums}
+
+/* chat sequencing */
+.reveal .chat-card .msg{opacity:0;transform:translateY(16px)}
+.reveal .chat-card .typing{opacity:0;transform:translateY(10px)}
+.reveal.in .chat-card .msg{opacity:1;transform:none;transition:opacity .7s ease,transform .8s var(--ease)}
+.reveal.in .chat-card .typing{opacity:1;transform:none;transition:opacity .7s ease .8s,transform .8s var(--ease) .8s}
+.reveal.in .chat-card .msg.user{transition-delay:.18s}
+.reveal.in .chat-card .msg.ai{transition-delay:.5s}
+
+/* principle stagger */
+.principle.reveal{opacity:0;transform:translateY(26px)}
+.principle.reveal.in{opacity:1;transform:none}
+
 /* ---------------- responsive ---------------- */
 @media (max-width:1080px){
   .hero-grid{grid-template-columns:1fr 1fr;gap:40px}
@@ -358,10 +446,19 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
   .about-copy{position:static}
   .about-note{max-width:none}
   .foot-main{grid-template-columns:1fr 1fr}
+  .hero-scroll-cue{display:none}
+  .products.rail{height:auto!important;padding:clamp(72px,9vw,124px) 0}
+  .rail-sticky{position:static;height:auto;overflow:visible;gap:0}
+  .rail-viewport{overflow:visible}
+  .rail-track{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;width:auto;
+    padding-inline:0;transform:none!important;margin-top:36px}
+  .rail-track .product-card{width:auto;flex:auto;min-height:0}
+  .rail-hint{display:none}
 }
 @media (max-width:620px){
   .shell{width:calc(100% - 32px)}
   .nav-wrap{height:66px}
+  .rail-track{grid-template-columns:1fr!important}
   .brand-text small{display:none}
   .brand-text b{font-size:.86rem}
   .lang-btn{padding:.32rem .5rem}
@@ -387,11 +484,14 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
-  .reveal{opacity:1;transform:none}
+  .reveal,.eyebrow,.hero-sub,.hero-actions,.hero-notes,.workspace,.art-glow{opacity:1!important;transform:none!important}
+  .split .line-in{transform:none!important}
+  .marquee-track{animation:none!important}
 }
 </style>
 </head>
 <body>
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 <a class="skip" href="#main">跳到主要内容</a>
 
 <!-- ======================= HEADER ======================= -->
@@ -479,33 +579,51 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
         </div>
       </div>
     </div>
+    <div class="hero-scroll-cue" aria-hidden="true"><span>Scroll</span><i></i></div>
   </section>
 
   <!-- ======================= STATS ======================= -->
-  <section class="stats">
+  <section class="stats" id="stats">
     <div class="shell stats-grid">
-      <div class="stat"><b>6</b><span data-zh="核心作品" data-en="Core works">核心作品</span></div>
-      <div class="stat"><b>0</b><span data-zh="安装步骤" data-en="Install steps">安装步骤</span></div>
-      <div class="stat"><b>2</b><span data-zh="界面语言" data-en="Interface languages">界面语言</span></div>
-      <div class="stat"><b>100%</b><span data-zh="静态部署" data-en="Static deployment">静态部署</span></div>
+      <div class="stat"><b data-count="6">6</b><span data-zh="核心作品" data-en="Core works">核心作品</span></div>
+      <div class="stat"><b data-count="0">0</b><span data-zh="安装步骤" data-en="Install steps">安装步骤</span></div>
+      <div class="stat"><b data-count="2">2</b><span data-zh="界面语言" data-en="Interface languages">界面语言</span></div>
+      <div class="stat"><b data-count="100" data-suffix="%">100%</b><span data-zh="静态部署" data-en="Static deployment">静态部署</span></div>
     </div>
   </section>
 
+  <!-- ======================= MARQUEE ======================= -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>MiniLLM <em>·</em> WebNT <em>·</em> PolyTerm <em>·</em> Python IDE <em>·</em> Lumina <em>·</em> Gomoku <em>·</em> </span>
+      <span>MiniLLM <em>·</em> WebNT <em>·</em> PolyTerm <em>·</em> Python IDE <em>·</em> Lumina <em>·</em> Gomoku <em>·</em> </span>
+    </div>
+  </div>
+
   <!-- ======================= PRODUCTS ======================= -->
-  <section class="section products" id="products">
-    <div class="shell">
-      <div class="sec-row">
-        <div class="sec-head reveal">
-          <span class="kicker">Core Works</span>
-          <h2 class="sec-title" data-zh="六个作品，<em>一个入口</em>" data-en="Six works, <em>one entry</em>">六个作品，<em>一个入口</em></h2>
-          <p class="sec-sub" data-zh="每一个都经过重新梳理，只保留真正值得打开的部分。点击卡片，即刻直达项目。" data-en="Each one has been distilled to what is genuinely worth opening. Click a card to open the project instantly.">每一个都经过重新梳理，只保留真正值得打开的部分。点击卡片，即刻直达项目。</p>
+  <section class="section products rail" id="products" style="--rail-x:0px">
+    <div class="rail-sticky">
+      <div class="shell rail-head">
+        <div class="sec-row">
+          <div class="sec-head reveal">
+            <span class="kicker">Core Works</span>
+            <h2 class="sec-title" data-zh="六个作品，<em>一个入口</em>" data-en="Six works, <em>one entry</em>">六个作品，<em>一个入口</em></h2>
+            <p class="sec-sub" data-zh="每一个都经过重新梳理，只保留真正值得打开的部分。滑动浏览，点击卡片直达项目。" data-en="Each one has been distilled to what is genuinely worth opening. Browse through, click a card to open it instantly.">每一个都经过重新梳理，只保留真正值得打开的部分。滑动浏览，点击卡片直达项目。</p>
+          </div>
+          <a class="btn btn-ghost reveal" style="--d:120ms" href="https://cyrcyrgo.github.io/old/" target="_blank" rel="noopener">
+            <span data-zh="全部历史作品" data-en="Full archive">全部历史作品</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M12.5 5.5 19 12l-6.5 6.5"/></svg>
+          </a>
         </div>
-        <a class="btn btn-ghost reveal" style="--d:120ms" href="https://cyrcyrgo.github.io/old/" target="_blank" rel="noopener">
-          <span data-zh="全部历史作品" data-en="Full archive">全部历史作品</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M12.5 5.5 19 12l-6.5 6.5"/></svg>
-        </a>
       </div>
-      <div class="product-grid" id="productGrid"></div>
+      <div class="rail-viewport">
+        <div class="rail-track" id="productGrid"></div>
+      </div>
+      <div class="rail-hint" aria-hidden="true">
+        <span class="h-line"></span>
+        <span data-zh="横向浏览" data-en="Scroll sideways">横向浏览</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M15 6l6 6-6 6"/></svg>
+      </div>
     </div>
   </section>
 
@@ -607,7 +725,7 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
         <p class="sec-sub" data-zh="NEWCYR 是一个独立开发者的数字作品集。每个项目都从真实需求出发，用最直接的方式解决一个问题——先能用，再好看。" data-en="NEWCYR is an independent maker's digital portfolio. Every project starts from a real need and solves it in the most direct way — usable first, beautiful second.">NEWCYR 是一个独立开发者的数字作品集。每个项目都从真实需求出发，用最直接的方式解决一个问题——先能用，再好看。</p>
         <p class="about-note" data-zh="长期维护、持续迭代。欢迎从任意一个作品开始，找到你需要的那一个。" data-en="Maintained and iterated over time. Start with any project and find the one you need.">长期维护、持续迭代。欢迎从任意一个作品开始，找到你需要的那一个。</p>
       </div>
-      <div class="principles reveal" style="--d:120ms">
+      <div class="principles">
         <div class="principle">
           <b>01</b>
           <div>
@@ -712,6 +830,7 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
   </div>
 </footer>
 
+<script src="assets/lib/lenis.min.js"></script>
 <script>
 (() => {
   const $  = (s, r = document) => r.querySelector(s);
@@ -819,8 +938,9 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
           <span class="p-link">${lang === 'zh' ? '查看项目' : 'Open project'}${arrow}</span>
         </a>`;
     }).join('');
-    // newly rendered cards need reveal observation
-    $$('.product-card.reveal').forEach(el => observer.observe(el));
+    armRailCards();
+    observeReveals();
+    measureRail();
   }
 
   /* ---------------- language ---------------- */
@@ -843,40 +963,235 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
       : 'NEWCYR official site: six core digital works, pure front-end and ready to use. Bilingual UI with light and dark themes.');
     try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
     renderProjects();
+    splitTitles();
     revealAllVisible();
   }
   $$('[data-lang]').forEach(btn => btn.addEventListener('click', () => applyLang(btn.dataset.lang)));
   $$('[data-set-lang]').forEach(btn => btn.addEventListener('click', () => applyLang(btn.dataset.setLang)));
 
-  /* ---------------- reveal ---------------- */
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in');
-        observer.unobserve(entry.target);
-      }
+  /* =========================================================
+     MOTION ENGINE
+  ========================================================= */
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const vh = () => window.innerHeight;
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+
+  const header = $('#header');
+  const navLinks = $('#navLinks');
+  const menuBtn = $('#menuBtn');
+  const scrollProgress = $('#scrollProgress');
+  const heroCopy = $('.hero-copy');
+  const heroArt = $('.hero-art');
+  const heroBg = $('.hero-bg');
+  const cue = $('.hero-scroll-cue');
+  const products = $('#products');
+  const railTrack = $('#productGrid');
+  const spotlight = $('#featured');
+  const chatCard = $('.chat-card');
+
+  let railMax = 0;
+  let railArmed = false;
+  let docMax = 1, railStart = 0, railSpan = 1, spotTop = 0, spotH = 1;
+
+  function measureAll() {
+    docMax = Math.max(1, document.documentElement.scrollHeight - vh());
+    if (products) {
+      railStart = products.offsetTop;
+      railSpan = Math.max(1, products.offsetHeight - vh() * 1.16);
+    }
+    if (spotlight) {
+      spotTop = spotlight.offsetTop;
+      spotH = spotlight.offsetHeight;
+    }
+  }
+
+  /* ---------- masked titles ---------- */
+  const splitSeen = new WeakSet();
+  const splitObserver = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (en.isIntersecting) { en.target.classList.add('in'); splitObserver.unobserve(en.target); }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px' });
-  $$('.reveal').forEach(el => observer.observe(el));
-  function revealAllVisible() {
-    $$('.reveal').forEach(el => {
-      const r = el.getBoundingClientRect();
-      if (r.top < window.innerHeight && r.bottom > 0) el.classList.add('in');
+  }, { threshold: 0.22, rootMargin: '0px 0px -6% 0px' });
+
+  function splitTitles() {
+    $$('.hero h1, .sec-title, .cta-inner h2').forEach((el) => {
+      if (el.querySelector(':scope > .line')) return;
+      const had = el.classList.contains('in');
+      const parts = el.innerHTML.split(/<br\s*\/?>/i);
+      el.innerHTML = parts.map((t) => `<span class="line"><span class="line-in">${t}</span></span>`).join('');
+      el.classList.add('split');
+      if (had) el.classList.add('in');
+      if (!had && !splitSeen.has(el)) { splitSeen.add(el); splitObserver.observe(el); }
+    });
+    measureAll();
+  }
+
+  /* ---------- reveal ---------- */
+  const revealSeen = new WeakSet();
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) { entry.target.classList.add('in'); observer.unobserve(entry.target); }
+    });
+  }, { threshold: 0.14, rootMargin: '0px 0px -7% 0px' });
+
+  function observeReveals() {
+    $$('.reveal').forEach((el) => {
+      if (!revealSeen.has(el)) { revealSeen.add(el); observer.observe(el); }
     });
   }
 
-  /* ---------------- header / menu ---------------- */
-  const header = $('#header');
-  const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 6);
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
+  function revealAllVisible() {
+    $$('.reveal').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top < vh() && r.bottom > 0) el.classList.add('in');
+    });
+  }
 
-  const menuBtn = $('#menuBtn');
-  const navLinks = $('#navLinks');
+  /* ---------- stats count-up ---------- */
+  function countUp(el) {
+    const target = parseFloat(el.dataset.count) || 0;
+    const suffix = el.dataset.suffix || '';
+    if (reduceMotion) { el.textContent = target + suffix; return; }
+    const t0 = performance.now();
+    const dur = 1500;
+    function tick(t) {
+      const p = Math.min(1, (t - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * e) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  let counted = false;
+  const statsIO = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !counted) {
+      counted = true;
+      $$('.stat b[data-count]').forEach(countUp);
+    }
+  }, { threshold: 0.4 });
+  const statsEl = $('#stats');
+  if (statsEl) statsIO.observe(statsEl);
+
+  /* ---------- products rail ---------- */
+  function measureRail() {
+    if (!products || !railTrack) return;
+    if (window.innerWidth <= 900) {
+      railMax = 0;
+      products.style.removeProperty('--rail-x');
+      products.style.height = '';
+      measureAll();
+      return;
+    }
+    railMax = Math.max(0, railTrack.scrollWidth - window.innerWidth);
+    const tail = Math.round(vh() * 0.16);
+    products.style.setProperty('--rail-x', (railMax + tail) + 'px');
+    products.style.height = (vh() + railMax + tail) + 'px';
+    measureAll();
+  }
+
+  function armRailCards() {
+    if (!railTrack) return;
+    const cards = railTrack.querySelectorAll('.product-card');
+    if (railArmed) { cards.forEach((c) => c.classList.add('in')); return; }
+    if (!products) return;
+    const r = products.getBoundingClientRect();
+    if (r.top < vh() * 0.92 && r.bottom > 0) {
+      railArmed = true;
+      cards.forEach((c, i) => setTimeout(() => c.classList.add('in'), reduceMotion ? 0 : i * 70));
+    }
+  }
+
+  /* ---------- Lenis ---------- */
+  let lenis = null;
+  if (window.Lenis && !reduceMotion) {
+    lenis = new Lenis({
+      duration: 1.18,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      wheelMultiplier: 1.05,
+      touchMultiplier: 1.35,
+      gestureOrientation: 'vertical'
+    });
+    const lenisRaf = (t) => { lenis.raf(t); requestAnimationFrame(lenisRaf); };
+    requestAnimationFrame(lenisRaf);
+  }
+
+  /* ---------- per-frame choreography (damped) ---------- */
+  const sm = {};
+  function smooth(key, target, factor, dt) {
+    const cur = key in sm ? sm[key] : target;
+    const a = 1 - Math.pow(1 - factor, Math.min(4, dt / 16.667));
+    const v = cur + (target - cur) * a;
+    sm[key] = v;
+    return v;
+  }
+
+  let lastY = window.scrollY;
+  let lastT = performance.now();
+  let loaded = false;
+
+  function update(dt) {
+    const sy = window.scrollY || 0;
+    scrollProgress.style.transform = `scaleX(${(sy / docMax).toFixed(4)})`;
+
+    header.classList.toggle('scrolled', sy > 6);
+    const menuOpen = navLinks.classList.contains('open');
+    if (!menuOpen && sy > lastY + 8 && sy > 130) header.classList.add('hide');
+    else if (sy < lastY - 8 || sy < 80) header.classList.remove('hide');
+
+    /* hero parallax */
+    const hp = clamp(sy / (vh() * 0.95));
+    heroCopy.style.transform = `translate3d(0,${smooth('copyY', -sy * 0.13, 0.2, dt).toFixed(2)}px,0)`;
+    heroCopy.style.opacity = String(clamp(1 - hp * 0.95));
+    heroArt.style.transform = `translate3d(0,${smooth('artY', sy * 0.05, 0.2, dt).toFixed(2)}px,0)`;
+    heroBg.style.transform = `translate3d(0,${smooth('bgY', sy * 0.08, 0.2, dt).toFixed(2)}px,0)`;
+    if (loaded) cue.style.opacity = String(clamp(1 - sy / 260));
+
+    /* products rail */
+    if (railMax > 0 && window.innerWidth > 900) {
+      const p = clamp((sy - railStart) / railSpan);
+      railTrack.style.transform = `translate3d(${smooth('railX', -p * railMax, 0.22, dt).toFixed(2)}px,0,0)`;
+      if (!railArmed) armRailCards();
+    } else {
+      railTrack.style.transform = 'none';
+    }
+
+    /* spotlight drift */
+    if (spotlight && chatCard) {
+      const p = clamp((vh() - (spotTop - sy)) / (vh() + spotH));
+      chatCard.style.transform = `translate3d(0,${smooth('chatY', (p - 0.5) * -44, 0.16, dt).toFixed(2)}px,0)`;
+    }
+
+    lastY = sy;
+  }
+
+  function loop(t) {
+    const dt = Math.min(50, t - lastT || 16.7);
+    lastT = t;
+    update(dt);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  /* ---------- magnetic buttons ---------- */
+  if (!reduceMotion && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    $$('.hero-actions .btn, .spot-actions .btn, .cta-actions .btn').forEach((btn) => {
+      btn.addEventListener('pointermove', (e) => {
+        const r = btn.getBoundingClientRect();
+        const dx = (e.clientX - (r.left + r.width / 2)) / r.width * 12;
+        const dy = (e.clientY - (r.top + r.height / 2)) / r.height * 8;
+        btn.style.transform = `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
+      });
+      btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
+    });
+  }
+
+  /* ---------- header / menu / anchors ---------- */
   menuBtn.addEventListener('click', () => {
     const open = navLinks.classList.toggle('open');
     menuBtn.setAttribute('aria-expanded', String(open));
     menuBtn.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+    if (open) header.classList.remove('hide');
   });
   navLinks.addEventListener('click', (e) => {
     if (e.target.closest('a')) {
@@ -892,8 +1207,48 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
     }
   });
 
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute('href');
+    if (!id || id.length < 2) return;
+    const target = $(id);
+    if (!target) return;
+    e.preventDefault();
+    if (lenis) lenis.scrollTo(target, { offset: -84, duration: 1.45 });
+    else target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
+
+  /* ---------- resize ---------- */
+  let rz;
+  window.addEventListener('resize', () => {
+    clearTimeout(rz);
+    rz = setTimeout(() => {
+      measureRail();
+      revealAllVisible();
+    }, 140);
+  });
+
   $('#year').textContent = new Date().getFullYear();
+
+  /* ---------- init ---------- */
+  $$('.principle').forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.setProperty('--d', `${i * 90}ms`);
+  });
+
   applyLang(lang);
+  splitTitles();
+  observeReveals();
+  measureRail();
+  armRailCards();
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    loaded = true;
+    document.body.classList.add('loaded');
+    const h1 = $('.hero h1');
+    if (h1) h1.classList.add('in');
+  }));
 })();
 </script>
 </body>
