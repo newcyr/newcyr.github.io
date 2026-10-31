@@ -302,6 +302,8 @@
     resizeTimer = setTimeout(() => {
       heroSize = null;
       heroDrawn = -1;
+      batterySize = null;
+      batteryDrawn = -1;
       measureTimeline();
       render();
     }, 180);
