@@ -9,6 +9,14 @@
   const TTL = 30 * DAY;
   const DEFAULT_BACKEND = 'http://127.0.0.1:8860';
 
+  /* auth.js 位于 <站点根>/mc/assets/，账号数据固定读取 /mc/accounts.json，
+     这样 /login、/signup 等站内其它路径也能做离线校验 */
+  const MC_BASE = (function () {
+    const src = document.currentScript ? document.currentScript.src : '';
+    const m = src.match(/^([^?#]*)\/assets\/auth\.js/);
+    return m ? m[1] : '';
+  })();
+
   const enc = new TextEncoder();
 
   function b64ToBytes(b64) {
@@ -100,7 +108,7 @@
   }
 
   async function loadAccounts() {
-    const res = await fetch('accounts.json?t=' + Date.now(), { cache: 'no-store' });
+    const res = await fetch(MC_BASE + '/accounts.json?t=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('账号数据加载失败（' + res.status + '）');
     const data = await res.json();
     return data.accounts || [];
