@@ -10,7 +10,7 @@
 /* 未登录用户无法访问联机界面 */
 (function () {
   if (!window.MCAuth || !MCAuth.readAuth()) {
-    location.replace('login.html?next=play.html');
+    location.replace('../login/?next=' + encodeURIComponent('../mc/play.html'));
   }
 })();
 </script>
@@ -36,23 +36,26 @@
 
   <div class="grid2">
     <section class="card play-card">
-      <h3>服务器信息</h3>
+      <h3>网页版联机</h3>
       <div class="status-line">
         <span class="dot" id="status-dot"></span>
         <span id="status-text" style="font-size:18px">读取中…</span>
       </div>
       <div class="addr" id="server-addr">—</div>
       <div class="meta-line" id="server-meta"></div>
-      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-        <button class="btn primary small" id="copy-addr">复制地址</button>
+
+      <div class="lobby-actions">
+        <a class="btn primary lg" id="start-game" href="javascript:void(0)">进入游戏（网页版）</a>
         <button class="btn ghost small" id="refresh-status">刷新状态</button>
+        <button class="btn ghost small" id="copy-addr">复制服务器地址</button>
       </div>
+      <p class="hint" id="start-hint" style="margin-top:12px">无需下载客户端，点击按钮即可在浏览器里直接进入服务器。</p>
 
       <ul class="join-steps">
-        <li><span class="n">1</span>打开 Minecraft Java 版 <b id="step-version">1.21.8</b>（建议使用汉化客户端）</li>
-        <li><span class="n">2</span>多人游戏 → 添加服务器，地址填入上方公网地址</li>
-        <li><span class="n">3</span>服务器为离线验证模式，昵称任意填写即可进入</li>
-        <li><span class="n">4</span>若显示离线，说明服主尚未启动服务，请稍后再试</li>
+        <li><span class="n">1</span>点击「进入游戏（网页版）」，浏览器会加载网页版客户端（首次约 35MB，之后走缓存）</li>
+        <li><span class="n">2</span>输入你想要的游戏昵称（离线验证模式，昵称任意填写）</li>
+        <li><span class="n">3</span>进入服务器后即可与好友一起游玩，服务端版本 <b id="step-version">1.21.8</b></li>
+        <li><span class="n">4</span>若显示离线，说明服主尚未启动服务，请稍后点击「刷新状态」</li>
       </ul>
     </section>
 
@@ -79,7 +82,7 @@
       <button class="btn primary" id="save-profile" style="width:100%">保存个人资料</button>
       <p class="msg" id="profile-msg"></p>
       <div class="outline-note" id="token-note" style="display:none">
-        当前为离线缓存凭证，修改资料需通过本机后台（8860）在线登录。
+        当前凭证不完整，修改资料需重新登录。
       </div>
       <div class="meta-line" id="token-exp">凭证有效期至：—</div>
     </section>
@@ -94,12 +97,15 @@
 <script>
 (function () {
   var auth = MCAuth.readAuth();
-  if (!auth) { location.replace('login.html?next=play.html'); return; }
+  if (!auth) { location.replace('../login/?next=' + encodeURIComponent('../mc/play.html')); return; }
 
   var chip = document.getElementById('user-chip');
-  chip.innerHTML = '<span class="user-chip">'
-    + (auth.avatar ? '<span class="avatar"><img src="' + auth.avatar + '" alt=""></span>' : '<span class="avatar">' + auth.nickname.slice(0, 1) + '</span>')
-    + '<span>' + auth.nickname + '</span></span>';
+  function renderChip() {
+    chip.innerHTML = '<span class="user-chip">'
+      + (auth.avatar ? '<span class="avatar"><img src="' + auth.avatar + '" alt=""></span>' : '<span class="avatar">' + auth.nickname.slice(0, 1) + '</span>')
+      + '<span>' + auth.nickname + '</span></span>';
+  }
+  renderChip();
 
   document.getElementById('welcome').textContent = '欢迎回来，' + auth.nickname + '（' + auth.email + '）';
   document.getElementById('profile-email').textContent = auth.email;
@@ -110,35 +116,52 @@
     : auth.nickname.slice(0, 1);
   document.getElementById('token-exp').textContent = '凭证有效期至：' + new Date(auth.exp).toLocaleString('zh-CN');
 
-  if (!auth.token) {
-    document.getElementById('token-note').style.display = '';
+  if (!auth.token) document.getElementById('token-note').style.display = '';
+
+  var webState = { online: false, ws: '' };
+
+  function clientUrl(ws) {
+    return 'client/index.html?server=' + encodeURIComponent(ws) + '&lang=zh_CN';
   }
 
-  var serverState = { online: false, url: '' };
+  function applyState(online) {
+    var start = document.getElementById('start-game');
+    var hint = document.getElementById('start-hint');
+    if (online) {
+      start.href = clientUrl(webState.ws);
+      start.classList.remove('disabled');
+      hint.textContent = '无需下载客户端，点击按钮即可在浏览器里直接进入服务器。';
+    } else {
+      start.href = 'javascript:void(0)';
+      start.classList.add('disabled');
+      hint.textContent = '服务器当前未启动，暂时无法进入游戏。';
+    }
+  }
 
   function loadStatus() {
-    fetch('server.json?t=' + Date.now(), { cache: 'no-store' })
+    fetch('web.json?t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('状态文件不存在');
         return r.json();
       })
       .then(function (s) {
-        var online = s && s.status === 'online' && s.url;
-        serverState.online = !!online;
-        serverState.url = online ? s.url.replace('tcp://', '') : '';
+        var online = !!(s && s.status === 'online' && s.ws);
+        webState.online = online;
+        webState.ws = online ? s.ws : '';
         document.getElementById('status-dot').className = 'dot' + (online ? ' ok' : '');
-        document.getElementById('status-text').textContent = online ? '在线，可以进入游戏' : '离线，服务器未启动';
-        document.getElementById('server-addr').textContent = online ? serverState.url : '服务器暂未开放，请联系服主';
-        if (s.version) {
-          document.getElementById('step-version').textContent = s.version;
-        }
-        document.getElementById('server-meta').textContent = s.updatedAt
-          ? '状态更新时间：' + new Date(s.updatedAt).toLocaleString('zh-CN')
-          : '';
+        document.getElementById('status-text').textContent = online ? '在线 · 可进入网页版联机' : '离线 · 服务器未启动';
+        document.getElementById('server-addr').textContent = online ? s.ws : '服务器暂未开放，请联系服主';
+        if (s.version) document.getElementById('step-version').textContent = s.version;
+        var meta = [];
+        if (s.motd) meta.push('MOTD：' + s.motd.replace(/§[0-9a-fk-or]/gi, ''));
+        if (s.updatedAt) meta.push('状态更新：' + new Date(s.updatedAt).toLocaleString('zh-CN'));
+        document.getElementById('server-meta').innerHTML = meta.join('<br>');
+        applyState(online);
       })
       .catch(function () {
         document.getElementById('status-text').textContent = '状态读取失败';
         document.getElementById('server-addr').textContent = '请稍后刷新或联系服主';
+        applyState(false);
       });
   }
 
@@ -146,8 +169,8 @@
   document.getElementById('refresh-status').addEventListener('click', loadStatus);
 
   document.getElementById('copy-addr').addEventListener('click', function () {
-    if (!serverState.online) { alert('服务器当前未开放，暂无可复制的地址'); return; }
-    var text = serverState.url;
+    if (!webState.online) { alert('服务器当前未开放，暂无可复制的地址'); return; }
+    var text = webState.ws;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(function () { alert('地址已复制：' + text); });
     } else {
@@ -181,7 +204,7 @@
     var btn = document.getElementById('save-profile');
     msg.textContent = '';
     if (!auth.token) {
-      msg.textContent = '离线凭证无法修改资料，请通过本机后台登录';
+      msg.textContent = '凭证不完整，请重新登录后再修改资料';
       msg.className = 'msg err';
       return;
     }
@@ -205,10 +228,8 @@
       pendingAvatar = null;
       document.getElementById('welcome').textContent = '欢迎回来，' + auth.nickname + '（' + auth.email + '）';
       document.getElementById('token-exp').textContent = '凭证有效期至：' + new Date(auth.exp).toLocaleString('zh-CN');
-      chip.innerHTML = '<span class="user-chip">'
-        + (auth.avatar ? '<span class="avatar"><img src="' + auth.avatar + '" alt=""></span>' : '<span class="avatar">' + auth.nickname.slice(0, 1) + '</span>')
-        + '<span>' + auth.nickname + '</span></span>';
-      msg.textContent = '资料已保存（同时写入本地后台账号数据）';
+      renderChip();
+      msg.textContent = '资料已保存到本机后端账号数据';
       msg.className = 'msg ok';
     } catch (err) {
       msg.textContent = err.message;

@@ -97,7 +97,7 @@ try { var t = localStorage.getItem('newcyr.theme'); document.documentElement.dat
 (function () {
   var params = new URLSearchParams(location.search);
   var next = params.get('next') || '../mc/';
-  if (next.charAt(0) !== '/' || next.slice(0, 2) === '//') next = '../mc/';
+  if (next.slice(0, 2) === '//' || (next.charAt(0) !== '/' && next.slice(0, 3) !== '../')) next = '../mc/';
 
   document.getElementById('link-login').href = '../login/?next=' + encodeURIComponent(next);
 

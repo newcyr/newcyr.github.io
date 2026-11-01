@@ -51,6 +51,9 @@ a{color:var(--green);text-decoration:none}
 .btn.gold{background:linear-gradient(180deg,#f0cd72,#c99b3d);border-color:#f5d98a;color:#221803}
 .btn.small{padding:7px 13px;font-size:12.5px;border-radius:8px}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.lg{padding:14px 26px;font-size:15px;border-radius:11px}
+.btn.disabled{opacity:.45;pointer-events:none}
+.lobby-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
 
 /* 通用卡片 */
 .card{
