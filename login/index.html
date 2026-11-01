@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>登录 · NEWCYR</title>
+<meta name="description" content="NEWCYR 账号登录：支持邮箱密码与邮箱验证码，登录凭证全站通用，有效期 30 天。" />
+<link rel="stylesheet" href="../auth/page.css" />
+</head>
+<body>
+<header class="auth-header">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">
+      <svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 22.5v-13l13 13v-13"/></svg>
+    </span>
+    <span>NEWCYR<small>Independent Works</small></span>
+  </a>
+  <nav class="header-nav">
+    <a href="../index.html">返回首页</a>
+    <a href="../signup/">注册</a>
+  </nav>
+</header>
+
+<main class="auth-main">
+  <div class="card">
+    <h1>登录账号</h1>
+    <p class="sub">一次登录，全站通用 · 凭证缓存 30 天，服务器关闭后依然保留</p>
+
+    <div class="session" id="session" style="display:none">
+      <span>当前已登录：<b id="session-name"></b></span>
+      <button class="btn ghost small" type="button" id="btn-continue">继续</button>
+      <button class="btn ghost small" type="button" id="btn-switch">切换账号</button>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" type="button" data-tab="password">邮箱 + 密码</button>
+      <button class="tab" type="button" data-tab="code">邮箱验证码</button>
+    </div>
+
+    <form id="form-password">
+      <div class="field">
+        <label for="p-email">邮箱</label>
+        <input id="p-email" type="email" autocomplete="username" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label for="p-password">密码</label>
+        <input id="p-password" type="password" autocomplete="current-password" placeholder="请输入登录密码" required />
+      </div>
+      <button class="btn primary" type="submit" id="btn-password">登录</button>
+      <p class="msg" id="msg-password"></p>
+    </form>
+
+    <form id="form-code" style="display:none">
+      <div class="field">
+        <label for="c-email">邮箱</label>
+        <input id="c-email" type="email" autocomplete="username" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label for="c-code">验证码</label>
+        <div class="code-row">
+          <input id="c-code" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字验证码" required />
+          <button class="btn ghost" type="button" id="btn-send-code">发送验证码</button>
+        </div>
+      </div>
+      <button class="btn primary" type="submit" id="btn-code">验证并登录</button>
+      <p class="msg" id="msg-code"></p>
+    </form>
+
+    <div class="backend">
+      <p class="backend-title">后台地址 <span class="badge" id="backend-state">检测中</span></p>
+      <div class="backend-row">
+        <input id="backend-input" type="text" placeholder="http://127.0.0.1:8860" />
+        <button class="btn ghost small" type="button" id="btn-save-backend">保存</button>
+      </div>
+      <p class="hint">邮箱验证码需要本机 8860 后台在线；后台离线时可用邮箱 + 密码走本地离线校验。</p>
+    </div>
+
+    <div class="divider">或</div>
+    <p class="foot-link">还没有账号？<a href="../signup/" id="link-signup">立即注册</a></p>
+  </div>
+</main>
+
+<footer class="auth-footer">
+  NEWCYR · 账号体系服务 <a href="https://newcyr.github.io/mc/">我的世界联机服</a>
+</footer>
+
+<script src="../mc/assets/auth.js"></script>
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var next = params.get('next') || '/mc/';
+  if (next.charAt(0) !== '/' || next.slice(0, 2) === '//') next = '/mc/';
+
+  var signupLink = document.getElementById('link-signup');
+  signupLink.href = '../signup/?next=' + encodeURIComponent(next);
+
+  function setMsg(id, text, type) {
+    var el = document.getElementById(id);
+    el.textContent = text || '';
+    el.className = 'msg' + (type ? ' ' + type : '');
+  }
+
+  /* 已登录状态 */
+  var existing = MCAuth.readAuth();
+  if (existing) {
+    var box = document.getElementById('session');
+    box.style.display = 'flex';
+    document.getElementById('session-name').textContent = existing.nickname + '（' + existing.email + '）';
+    document.getElementById('btn-continue').addEventListener('click', function () { location.href = next; });
+    document.getElementById('btn-switch').addEventListener('click', function () {
+      MCAuth.logout();
+      box.style.display = 'none';
+    });
+  }
+
+  /* 后台地址 */
+  var backendInput = document.getElementById('backend-input');
+  backendInput.value = MCAuth.backendBase();
+  var state = document.getElementById('backend-state');
+  fetch(MCAuth.backendBase() + '/api/public/server', { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error(); state.textContent = '在线'; state.className = 'badge online'; })
+    .catch(function () { state.textContent = '离线'; state.className = 'badge offline'; });
+
+  document.getElementById('btn-save-backend').addEventListener('click', function () {
+    var url = backendInput.value.trim();
+    if (!/^http:\/\/[^\s]+$/.test(url)) { setMsg('msg-password', '后台地址需以 http:// 开头', 'err'); return; }
+    MCAuth.setBackendBase(url);
+    state.textContent = '已保存';
+    state.className = 'badge';
+    location.reload();
+  });
+
+  /* 切换登录方式 */
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var tab = e.target.closest('.tab');
+    if (!tab) return;
+    document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t === tab); });
+    var isPwd = tab.dataset.tab === 'password';
+    document.getElementById('form-password').style.display = isPwd ? '' : 'none';
+    document.getElementById('form-code').style.display = isPwd ? 'none' : '';
+  });
+
+  /* 密码登录 */
+  document.getElementById('form-password').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('btn-password');
+    btn.disabled = true;
+    setMsg('msg-password', '正在验证…');
+    try {
+      var result = await MCAuth.loginPassword(document.getElementById('p-email').value, document.getElementById('p-password').value);
+      setMsg('msg-password', result.mode === 'offline' ? '登录成功（离线凭证，后台不可用）' : '登录成功，正在跳转…', 'ok');
+      setTimeout(function () { location.href = next; }, 600);
+    } catch (err) {
+      setMsg('msg-password', err.message, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* 验证码登录 */
+  var countdown = 0;
+  var timer = null;
+  var sendBtn = document.getElementById('btn-send-code');
+
+  function tick() {
+    if (countdown <= 0) { sendBtn.textContent = '发送验证码'; sendBtn.disabled = false; clearInterval(timer); return; }
+    sendBtn.textContent = countdown + ' 秒后重发';
+    countdown -= 1;
+  }
+
+  sendBtn.addEventListener('click', async function () {
+    var email = document.getElementById('c-email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setMsg('msg-code', '请先填写正确的邮箱', 'err'); return; }
+    sendBtn.disabled = true;
+    setMsg('msg-code', '正在发送验证码…');
+    try {
+      await MCAuth.sendCode(email);
+      setMsg('msg-code', '验证码已发送至邮箱，5 分钟内有效', 'ok');
+      countdown = 60;
+      timer = setInterval(tick, 1000);
+    } catch (err) {
+      setMsg('msg-code', err.message, 'err');
+      sendBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('form-code').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('btn-code');
+    btn.disabled = true;
+    setMsg('msg-code', '正在校验验证码…');
+    try {
+      await MCAuth.loginCode(document.getElementById('c-email').value, document.getElementById('c-code').value);
+      setMsg('msg-code', '登录成功，正在跳转…', 'ok');
+      setTimeout(function () { location.href = next; }, 600);
+    } catch (err) {
+      setMsg('msg-code', err.message, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
