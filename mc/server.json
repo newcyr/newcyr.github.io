@@ -1,10 +1,10 @@
 {
-  "status": "offline",
-  "url": null,
-  "host": null,
-  "port": 25565,
-  "version": "1.21.8",
-  "motd": "我的世界 汉化版联机服 §7| 登录后进入",
-  "updatedAt": "2026-11-01T05:30:00.000Z",
-  "site": "https://newcyr.github.io/mc/"
+    "status":  "online",
+    "url":  "tcp://127.0.0.1:25565",
+    "host":  "127.0.0.1",
+    "port":  25565,
+    "version":  "1.21.8",
+    "motd":  "我的世界 汉化版联机服 §7| 登录后进入",
+    "updatedAt":  "2026-11-01T05:32:02.6971685Z",
+    "site":  "https://newcyr.github.io/mc/"
 }
