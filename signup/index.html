@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>注册 · NEWCYR</title>
+<meta name="description" content="注册 NEWCYR 账号：注册成功后自动登录，凭证全站通用，有效期 30 天。" />
+<link rel="stylesheet" href="../auth/page.css" />
+</head>
+<body>
+<header class="auth-header">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">
+      <svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 22.5v-13l13 13v-13"/></svg>
+    </span>
+    <span>NEWCYR<small>Independent Works</small></span>
+  </a>
+  <nav class="header-nav">
+    <a href="../index.html">返回首页</a>
+    <a href="../login/">登录</a>
+  </nav>
+</header>
+
+<main class="auth-main">
+  <div class="card">
+    <h1>创建账号</h1>
+    <p class="sub">注册后自动登录，凭证全站通用 · 有效期 30 天</p>
+
+    <form id="form-register">
+      <div class="field">
+        <label for="r-email">邮箱</label>
+        <input id="r-email" type="email" autocomplete="email" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label for="r-nickname">昵称</label>
+        <input id="r-nickname" type="text" maxlength="16" placeholder="留空则使用邮箱前缀" />
+      </div>
+      <div class="field">
+        <label for="r-password">密码</label>
+        <input id="r-password" type="password" autocomplete="new-password" placeholder="6-64 位，建议含字母与数字" required />
+      </div>
+      <div class="field">
+        <label for="r-password2">确认密码</label>
+        <input id="r-password2" type="password" autocomplete="new-password" placeholder="再次输入密码" required />
+      </div>
+      <button class="btn primary" type="submit" id="btn-register">注册并登录</button>
+      <p class="msg" id="msg-register"></p>
+    </form>
+
+    <div class="backend">
+      <p class="backend-title">后台地址 <span class="badge" id="backend-state">检测中</span></p>
+      <div class="backend-row">
+        <input id="backend-input" type="text" placeholder="http://127.0.0.1:8860" />
+        <button class="btn ghost small" type="button" id="btn-save-backend">保存</button>
+      </div>
+      <p class="hint">注册需要本机 8860 后台在线（账号写入 D:\newcyr\data\accounts.json 并同步到 GitHub）。若在其它设备注册，请先填写可访问的后台地址。</p>
+    </div>
+
+    <div class="divider">已有账号</div>
+    <p class="foot-link"><a href="../login/" id="link-login">直接登录</a></p>
+  </div>
+</main>
+
+<footer class="auth-footer">
+  NEWCYR · 账号体系服务 <a href="https://newcyr.github.io/mc/">我的世界联机服</a>
+</footer>
+
+<script src="../mc/assets/auth.js"></script>
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var next = params.get('next') || '/mc/';
+  if (next.charAt(0) !== '/' || next.slice(0, 2) === '//') next = '/mc/';
+
+  document.getElementById('link-login').href = '../login/?next=' + encodeURIComponent(next);
+
+  var msg = document.getElementById('msg-register');
+  function setMsg(text, type) {
+    msg.textContent = text || '';
+    msg.className = 'msg' + (type ? ' ' + type : '');
+  }
+
+  var backendInput = document.getElementById('backend-input');
+  backendInput.value = MCAuth.backendBase();
+  var state = document.getElementById('backend-state');
+  fetch(MCAuth.backendBase() + '/api/public/server', { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error(); state.textContent = '在线'; state.className = 'badge online'; })
+    .catch(function () { state.textContent = '离线'; state.className = 'badge offline'; });
+
+  document.getElementById('btn-save-backend').addEventListener('click', function () {
+    var url = backendInput.value.trim();
+    if (!/^http:\/\/[^\s]+$/.test(url)) { setMsg('后台地址需以 http:// 开头', 'err'); return; }
+    MCAuth.setBackendBase(url);
+    state.textContent = '已保存';
+    state.className = 'badge';
+    location.reload();
+  });
+
+  document.getElementById('form-register').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var email = document.getElementById('r-email').value.trim().toLowerCase();
+    var nickname = document.getElementById('r-nickname').value.trim();
+    var password = document.getElementById('r-password').value;
+    var password2 = document.getElementById('r-password2').value;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setMsg('邮箱格式不正确', 'err'); return; }
+    if (password.length < 6 || password.length > 64) { setMsg('密码长度需为 6-64 位', 'err'); return; }
+    if (password !== password2) { setMsg('两次输入的密码不一致', 'err'); return; }
+
+    var btn = document.getElementById('btn-register');
+    btn.disabled = true;
+    setMsg('正在创建账号…');
+    try {
+      var data = await MCAuth.apiCall('/api/auth/register', {
+        method: 'POST',
+        body: { email: email, password: password, nickname: nickname }
+      });
+      MCAuth.saveAuth(data.user, data.token);
+      setMsg('注册成功，正在进入联机页…', 'ok');
+      setTimeout(function () { location.href = next; }, 800);
+    } catch (err) {
+      if (err.offline) {
+        setMsg('无法连接后台（' + MCAuth.backendBase() + '），请确认本机后台已启动，或在上方填写正确的后台地址', 'err');
+      } else {
+        setMsg(err.message, 'err');
+      }
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
