@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>登录 · 我的世界汉化联机服</title>
+<link rel="stylesheet" href="assets/mc.css" />
+</head>
+<body>
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="block-logo"></span>我的世界 · 汉化联机服</a>
+    <div class="nav-spacer"></div>
+    <nav class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="play.html">进入联机</a>
+    </nav>
+  </div>
+</header>
+
+<main class="auth-wrap">
+  <div class="card auth-card">
+    <h2>登录联机服</h2>
+    <p class="sub">完成验证后才能进入联机游玩界面 · 凭证缓存 30 天</p>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="password">邮箱 + 密码</button>
+      <button class="tab" data-tab="code">邮箱验证码</button>
+    </div>
+
+    <!-- 密码登录 -->
+    <form id="form-password">
+      <div class="field">
+        <label for="p-email">邮箱</label>
+        <input id="p-email" type="email" autocomplete="username" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label for="p-password">密码</label>
+        <input id="p-password" type="password" autocomplete="current-password" placeholder="请输入登录密码" required />
+      </div>
+      <button class="btn primary" style="width:100%" type="submit" id="btn-password">登录</button>
+      <p class="msg" id="msg-password"></p>
+    </form>
+
+    <!-- 验证码登录 -->
+    <form id="form-code" style="display:none">
+      <div class="field">
+        <label for="c-email">邮箱</label>
+        <input id="c-email" type="email" autocomplete="username" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label for="c-code">验证码</label>
+        <div class="code-row">
+          <input id="c-code" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字验证码" required />
+          <button class="btn ghost" type="button" id="btn-send-code" style="flex:none">发送验证码</button>
+        </div>
+      </div>
+      <button class="btn primary" style="width:100%" type="submit" id="btn-code">验证并登录</button>
+      <p class="msg" id="msg-code"></p>
+    </form>
+
+    <div class="advanced">
+      <p class="hint" style="margin-bottom:8px">
+        后台地址 <span class="badge" id="backend-state">检测中</span>
+        <span class="hint">（验证码登录需要本机 8860 后台在线）</span>
+      </p>
+      <div class="backend-row">
+        <input id="backend-input" type="text" placeholder="http://127.0.0.1:8860" />
+        <button class="btn ghost small" type="button" id="btn-save-backend">保存</button>
+      </div>
+      <p class="hint" style="margin-top:12px">没有账号？账号由服主在本地后台（8860）创建并同步到本站。</p>
+    </div>
+  </div>
+</main>
+
+<script src="assets/auth.js"></script>
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var next = params.get('next') || 'play.html';
+  if (!/^(play|index)\.html/.test(next)) next = 'play.html';
+
+  var existing = MCAuth.readAuth();
+  if (existing) {
+    location.replace(next);
+    return;
+  }
+
+  var input = document.getElementById('backend-input');
+  input.value = MCAuth.backendBase();
+
+  function setMsg(id, text, type) {
+    var el = document.getElementById(id);
+    el.textContent = text || '';
+    el.className = 'msg' + (type ? ' ' + type : '');
+  }
+
+  var state = document.getElementById('backend-state');
+  fetch(MCAuth.backendBase() + '/api/public/server', { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error(); state.textContent = '在线'; state.style.color = '#9df3c2'; })
+    .catch(function () { state.textContent = '离线'; state.style.color = '#ffb5b8'; });
+
+  document.getElementById('btn-save-backend').addEventListener('click', function () {
+    var url = input.value.trim();
+    if (!/^http:\/\/[^\s]+$/.test(url)) { setMsg('msg-password', '后台地址需以 http:// 开头', 'err'); return; }
+    MCAuth.setBackendBase(url);
+    setMsg('msg-password', '后台地址已保存', 'ok');
+    location.reload();
+  });
+
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var tab = e.target.closest('.tab');
+    if (!tab) return;
+    document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t === tab); });
+    var isPwd = tab.dataset.tab === 'password';
+    document.getElementById('form-password').style.display = isPwd ? '' : 'none';
+    document.getElementById('form-code').style.display = isPwd ? 'none' : '';
+  });
+
+  /* 密码登录 */
+  document.getElementById('form-password').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('btn-password');
+    btn.disabled = true;
+    setMsg('msg-password', '正在验证…');
+    try {
+      var result = await MCAuth.loginPassword(document.getElementById('p-email').value, document.getElementById('p-password').value);
+      setMsg('msg-password', result.mode === 'offline' ? '登录成功（离线凭证，本机后台不可用）' : '登录成功，正在跳转…', 'ok');
+      setTimeout(function () { location.href = next; }, 600);
+    } catch (err) {
+      setMsg('msg-password', err.message, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* 验证码登录 */
+  var countdown = 0;
+  var sendBtn = document.getElementById('btn-send-code');
+  var timer = null;
+
+  function tick() {
+    if (countdown <= 0) { sendBtn.textContent = '发送验证码'; sendBtn.disabled = false; clearInterval(timer); return; }
+    sendBtn.textContent = countdown + ' 秒后重发';
+    countdown -= 1;
+  }
+
+  sendBtn.addEventListener('click', async function () {
+    var email = document.getElementById('c-email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setMsg('msg-code', '请先填写正确的邮箱', 'err'); return; }
+    sendBtn.disabled = true;
+    setMsg('msg-code', '正在发送验证码…');
+    try {
+      var data = await MCAuth.sendCode(email);
+      setMsg('msg-code', '验证码已发送，5 分钟内有效' + (data.delivered === false ? '（请查收邮件）' : ''), 'ok');
+      countdown = 60;
+      timer = setInterval(tick, 1000);
+    } catch (err) {
+      setMsg('msg-code', err.message, 'err');
+      sendBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('form-code').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('btn-code');
+    btn.disabled = true;
+    setMsg('msg-code', '正在校验验证码…');
+    try {
+      await MCAuth.loginCode(document.getElementById('c-email').value, document.getElementById('c-code').value);
+      setMsg('msg-code', '登录成功，正在跳转…', 'ok');
+      setTimeout(function () { location.href = next; }, 600);
+    } catch (err) {
+      setMsg('msg-code', err.message, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
