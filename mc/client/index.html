@@ -6,11 +6,18 @@
 		<meta name="description" content="EaglercraftX 1.8.8 - 浏览器里直接玩 Minecraft" />
 		<title>EaglercraftX 1.8.8 - 网页版 Minecraft</title>
 		<link type="image/png" rel="shortcut icon" href="favicon.png" />
-		<script type="text/javascript" src="classes.js"></script>
 		<script type="text/javascript">
 			"use strict";
 
-			// 把用户/URL 传入的地址标准化成 Eaglercraft 需要的 ws(s)://.../ 形式
+			/* 游戏基础资源优先从 GitHub 镜像站拉取，避免占用本机上行带宽；
+			   多个镜像依次尝试，全部失败才回落到原站（GitHub Pages 同目录）。 */
+			var ORIGIN = "https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/mc/client/";
+			var MIRRORS = [
+				{ name: "镜像 A", base: "https://gh-proxy.com/" + ORIGIN },
+				{ name: "镜像 B", base: "https://ghfast.top/" + ORIGIN },
+				{ name: "原站", base: "" }
+			];
+
 			function normalizeServerAddr(addr) {
 				addr = String(addr).trim();
 				if (!/^wss?:\/\//i.test(addr)) addr = "ws://" + addr;
@@ -19,10 +26,37 @@
 				return addr;
 			}
 
-			window.addEventListener("load", function() {
-				if(window.location.href.indexOf("file:") === 0) {
-					alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP");
-					return;
+			function bootMsg(text) {
+				var el = document.getElementById("boot-msg");
+				if (el) el.textContent = text;
+			}
+
+			var started = false;
+
+			/* 记住上一次可用的镜像，下次优先使用 */
+			try {
+				var saved = window.localStorage.getItem("mc_client_mirror");
+				if (saved) {
+					for (var k = 0; k < MIRRORS.length; k++) {
+						if (MIRRORS[k].base === saved) {
+							var picked = MIRRORS.splice(k, 1)[0];
+							MIRRORS.unshift(picked);
+							break;
+						}
+					}
+				}
+			} catch (e) {}
+
+			function startGame(base) {
+				if (started) return;
+				started = true;
+
+				var q = window.location.search;
+				var join = null;
+				if ((typeof q === "string") && q[0] === "?" && (typeof window.URLSearchParams !== "undefined")) {
+					q = new window.URLSearchParams(q);
+					var s = q.get("server") || q.get("joinServer");
+					if (s) join = normalizeServerAddr(s);
 				}
 
 				window.eaglercraftXOpts = {
@@ -31,8 +65,8 @@
 					allowUpdateSvc: false,
 					allowFNAWSkins: false,
 					container: "game_frame",
-					assetsURI: "assets.epk",
-					localesURI: "lang/",
+					assetsURI: base + "assets.epk",
+					localesURI: base + "lang/",
 					worldsDB: "worlds",
 					servers: [
 						// 本地测试服（页面用 http 打开时生效；https 页面请用 ?server=wss://... 形式）
@@ -40,19 +74,60 @@
 					],
 					relays: []
 				};
+				if (join) window.eaglercraftXOpts.joinServer = join;
 
-				// 支持 ?server=<地址> 或 ?joinServer=<地址> 自动进入服务器
-				var q = window.location.search;
-				if((typeof q === "string") && q[0] === "?" && (typeof window.URLSearchParams !== "undefined")) {
-					q = new window.URLSearchParams(q);
-					var s = q.get("server") || q.get("joinServer");
-					if(s) window.eaglercraftXOpts.joinServer = normalizeServerAddr(s);
-				}
+				var boot = document.getElementById("boot");
+				if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
 
 				main();
+			}
+
+			function loadFrom(i) {
+				if (i >= MIRRORS.length) {
+					bootMsg("资源加载失败，请检查网络后刷新页面");
+					return;
+				}
+				var m = MIRRORS[i];
+				bootMsg("正在从" + m.name + "加载游戏资源…");
+				var done = false;
+				var script = document.createElement("script");
+				script.type = "text/javascript";
+				script.src = m.base + "classes.js";
+				script.onload = function () {
+					if (done) return;
+					done = true;
+					clearTimeout(timer);
+					try { window.localStorage.setItem("mc_client_mirror", m.base); } catch (e) {}
+					startGame(m.base);
+				};
+				script.onerror = function () {
+					if (done) return;
+					done = true;
+					clearTimeout(timer);
+					loadFrom(i + 1);
+				};
+				var timer = setTimeout(function () {
+					if (done) return;
+					done = true;
+					loadFrom(i + 1);
+				}, 60000);
+				document.head.appendChild(script);
+			}
+
+			window.addEventListener("load", function () {
+				if (window.location.href.indexOf("file:") === 0) {
+					alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP");
+					return;
+				}
+				loadFrom(0);
 			});
 		</script>
 	</head>
 	<body style="margin:0px;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
+		<div id="boot" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#000;color:#9df3c2;font-family:'Microsoft YaHei',system-ui,sans-serif;z-index:9">
+			<div style="font-size:15px;letter-spacing:.5px">NewCyr 网页版我的世界</div>
+			<div id="boot-msg" style="font-size:13px;color:#8fb3a1">正在加载游戏资源…</div>
+			<div style="font-size:12px;color:#5f7f6e">首次加载约 35MB，请耐心等待</div>
+		</div>
 	</body>
 </html>
