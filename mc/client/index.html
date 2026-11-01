@@ -9,7 +9,8 @@
 		<script type="text/javascript">
 			"use strict";
 
-			/* 游戏基础资源优先从 GitHub 镜像站拉取，避免占用本机上行带宽；
+			/* 游戏基础资源优先从 GitHub 镜像站拉取，减少对原站的依赖；
+			   用 fetch + Blob 加载 classes.js，避免镜像站 text/plain + nosniff 导致脚本被浏览器拒绝执行。
 			   多个镜像依次尝试，全部失败才回落到原站（GitHub Pages 同目录）。 */
 			var ORIGIN = "https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/mc/client/";
 			var MIRRORS = [
@@ -17,6 +18,8 @@
 				{ name: "镜像 B", base: "https://ghfast.top/" + ORIGIN },
 				{ name: "原站", base: "" }
 			];
+
+			var IDLE_TIMEOUT = 25000;
 
 			function normalizeServerAddr(addr) {
 				addr = String(addr).trim();
@@ -29,6 +32,10 @@
 			function bootMsg(text) {
 				var el = document.getElementById("boot-msg");
 				if (el) el.textContent = text;
+			}
+
+			function mb(n) {
+				return (n / 1048576).toFixed(1) + " MB";
 			}
 
 			var started = false;
@@ -82,36 +89,119 @@
 				main();
 			}
 
+			/* 下载 classes.js，带空闲超时与进度提示 */
+			function downloadScript(url, label, onProgress) {
+				return new Promise(function (resolve, reject) {
+					var settled = false;
+					var idleTimer = null;
+
+					function fail(err) {
+						if (settled) return;
+						settled = true;
+						clearTimeout(idleTimer);
+						try { controller.abort(); } catch (e) {}
+						reject(err);
+					}
+					function resetIdle() {
+						clearTimeout(idleTimer);
+						idleTimer = setTimeout(function () { fail(new Error("下载超时")); }, IDLE_TIMEOUT);
+					}
+
+					var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+					resetIdle();
+
+					fetch(url, {
+						signal: controller ? controller.signal : undefined,
+						credentials: "omit",
+						referrerPolicy: "no-referrer"
+					})
+						.then(function (res) {
+							if (!res.ok) throw new Error("HTTP " + res.status);
+							var total = parseInt(res.headers.get("content-length") || "0", 10);
+							var reader = res.body && res.body.getReader ? res.body.getReader() : null;
+
+							if (!reader) {
+								return res.blob().then(function (blob) {
+									onProgress(blob.size, total);
+									return { blob: blob, size: blob.size };
+								});
+							}
+
+							var chunks = [];
+							var received = 0;
+							var lastPaint = 0;
+
+							function pump() {
+								return reader.read().then(function (r) {
+									if (r.done) return { chunks: chunks, size: received };
+									resetIdle();
+									chunks.push(r.value);
+									received += r.value.length;
+									var now = Date.now();
+									if (now - lastPaint > 300) {
+										lastPaint = now;
+										onProgress(received, total);
+									}
+									return pump();
+								});
+							}
+							return pump().then(function (out) {
+								onProgress(out.size, total);
+								return { chunks: out.chunks, size: out.size };
+							});
+						})
+						.then(function (out) {
+							if (settled) return;
+							var blob;
+							if (out.chunks) {
+								var head = "";
+								try { head = new TextDecoder("utf-8").decode(out.chunks[0].slice(0, 200)); } catch (e) {}
+								if (out.size < 5 * 1048576) throw new Error("文件不完整（" + mb(out.size) + "）");
+								if (head && head.indexOf("<html") !== -1) throw new Error("镜像返回了错误页面");
+								blob = new Blob(out.chunks, { type: "text/javascript" });
+							} else {
+								if (out.size < 5 * 1048576) throw new Error("文件不完整（" + mb(out.size) + "）");
+								blob = new Blob([out.blob], { type: "text/javascript" });
+							}
+							settled = true;
+							clearTimeout(idleTimer);
+							resolve(blob);
+						})
+						.catch(fail);
+				});
+			}
+
 			function loadFrom(i) {
 				if (i >= MIRRORS.length) {
 					bootMsg("资源加载失败，请检查网络后刷新页面");
 					return;
 				}
 				var m = MIRRORS[i];
-				bootMsg("正在从" + m.name + "加载游戏资源…");
-				var done = false;
-				var script = document.createElement("script");
-				script.type = "text/javascript";
-				script.src = m.base + "classes.js";
-				script.onload = function () {
-					if (done) return;
-					done = true;
-					clearTimeout(timer);
-					try { window.localStorage.setItem("mc_client_mirror", m.base); } catch (e) {}
-					startGame(m.base);
-				};
-				script.onerror = function () {
-					if (done) return;
-					done = true;
-					clearTimeout(timer);
-					loadFrom(i + 1);
-				};
-				var timer = setTimeout(function () {
-					if (done) return;
-					done = true;
-					loadFrom(i + 1);
-				}, 60000);
-				document.head.appendChild(script);
+				bootMsg("正在从" + m.name + "下载游戏资源…");
+				downloadScript(m.base + "classes.js", m.name, function (got, total) {
+					bootMsg("正在从" + m.name + "下载游戏资源… " + mb(got) + (total && total >= got ? " / " + mb(total) : ""));
+				})
+					.then(function (blob) {
+						var url = URL.createObjectURL(blob);
+						var script = document.createElement("script");
+						script.type = "text/javascript";
+						script.src = url;
+						script.onload = function () {
+							URL.revokeObjectURL(url);
+							try { window.localStorage.setItem("mc_client_mirror", m.base); } catch (e) {}
+							startGame(m.base);
+						};
+						script.onerror = function () {
+							URL.revokeObjectURL(url);
+							bootMsg(m.name + "脚本执行失败，切换下一个来源…");
+							setTimeout(function () { loadFrom(i + 1); }, 0);
+						};
+						document.head.appendChild(script);
+					})
+					.catch(function () {
+						bootMsg(m.name + "不可用，正在切换下一个来源…");
+						setTimeout(function () { loadFrom(i + 1); }, 300);
+					});
 			}
 
 			window.addEventListener("load", function () {
