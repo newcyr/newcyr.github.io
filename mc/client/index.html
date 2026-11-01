@@ -171,12 +171,67 @@
 				});
 			}
 
-			function loadFrom(i) {
-				if (i >= MIRRORS.length) {
+			/* 单镜像测速：只读取前 256KB 后中断，按实测吞吐量评分 */
+			function probeMirror(m) {
+				return new Promise(function (resolve) {
+					var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+					var settled = false;
+					function done(score) {
+						if (settled) return;
+						settled = true;
+						resolve({ m: m, score: score });
+					}
+					var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+					var timer = setTimeout(function () {
+						try { if (controller) controller.abort(); } catch (e) {}
+						done(-1);
+					}, 12000);
+
+					fetch(m.base + "classes.js", {
+						signal: controller ? controller.signal : undefined,
+						credentials: "omit",
+						referrerPolicy: "no-referrer"
+					})
+						.then(function (res) {
+							if (!res.ok) throw new Error("HTTP " + res.status);
+							var now = function () { return (window.performance && performance.now) ? performance.now() : Date.now(); };
+							if (!res.body || !res.body.getReader) {
+								return res.blob().then(function (b) {
+									clearTimeout(timer);
+									done(b.size / Math.max(1, now() - t0));
+								});
+							}
+							var reader = res.body.getReader();
+							var bytes = 0;
+							function pump() {
+								return reader.read().then(function (r) {
+									if (r.done) {
+										clearTimeout(timer);
+										done(bytes / Math.max(1, now() - t0));
+										return;
+									}
+									bytes += r.value.length;
+									if (bytes >= 262144) {
+										try { reader.cancel(); } catch (e) {}
+										clearTimeout(timer);
+										done(bytes / Math.max(1, now() - t0));
+										return;
+									}
+									return pump();
+								});
+							}
+							return pump();
+						})
+						.catch(function () { clearTimeout(timer); done(-1); });
+				});
+			}
+
+			function loadFrom(list, i) {
+				if (i >= list.length) {
 					bootMsg("资源加载失败，请检查网络后刷新页面");
 					return;
 				}
-				var m = MIRRORS[i];
+				var m = list[i];
 				bootMsg("正在从" + m.name + "下载游戏资源…");
 				downloadScript(m.base + "classes.js", m.name, function (got, total) {
 					bootMsg("正在从" + m.name + "下载游戏资源… " + mb(got) + (total && total >= got ? " / " + mb(total) : ""));
@@ -194,14 +249,38 @@
 						script.onerror = function () {
 							URL.revokeObjectURL(url);
 							bootMsg(m.name + "脚本执行失败，切换下一个来源…");
-							setTimeout(function () { loadFrom(i + 1); }, 0);
+							setTimeout(function () { loadFrom(list, i + 1); }, 0);
 						};
 						document.head.appendChild(script);
 					})
 					.catch(function () {
 						bootMsg(m.name + "不可用，正在切换下一个来源…");
-						setTimeout(function () { loadFrom(i + 1); }, 300);
+						setTimeout(function () { loadFrom(list, i + 1); }, 300);
 					});
+			}
+
+			/* 所有镜像并发测速，默认使用实测最快的镜像；镜像全部失败才回落到原站 */
+			function startWithFastestMirror() {
+				var mirrors = [];
+				var origin = [];
+				for (var i = 0; i < MIRRORS.length; i++) {
+					if (MIRRORS[i].base) mirrors.push(MIRRORS[i]);
+					else origin.push(MIRRORS[i]);
+				}
+				bootMsg("正在测试各镜像站速度…");
+				Promise.all(mirrors.map(probeMirror)).then(function (results) {
+					var good = results.filter(function (r) { return r.score > 0; });
+					good.sort(function (a, b) { return b.score - a.score; });
+					if (!good.length) {
+						bootMsg("镜像站均不可用，改用原站…");
+						loadFrom(origin, 0);
+						return;
+					}
+					var best = good[0];
+					bootMsg("最快镜像：" + best.m.name + "（" + (best.score * 1000 / 1048576).toFixed(2) + " MB/s），开始下载…");
+					var order = good.map(function (r) { return r.m; }).concat(origin);
+					loadFrom(order, 0);
+				});
 			}
 
 			window.addEventListener("load", function () {
@@ -209,7 +288,7 @@
 					alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP");
 					return;
 				}
-				loadFrom(0);
+				startWithFastestMirror();
 			});
 		</script>
 	</head>
