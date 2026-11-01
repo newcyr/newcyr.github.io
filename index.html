@@ -132,7 +132,9 @@ html[data-theme="dark"] .theme-btn .icon-moon{display:none}
 .nav-cta{padding:.66rem 1.2rem;font-size:.85rem}
 
 /* ---------------- hero ---------------- */
-.hero{position:relative;padding:clamp(64px,8vw,104px) 0 clamp(56px,7vw,88px);overflow:hidden;background:var(--bg)}
+.hero{position:relative;display:flex;flex-direction:column;justify-content:center;
+  min-height:calc(100vh - 74px);min-height:calc(100svh - 74px);
+  padding:clamp(48px,6vw,84px) 0 clamp(40px,5vw,64px);overflow:hidden;background:var(--bg)}
 .hero-bg{position:absolute;inset:0;pointer-events:none;z-index:0}
 .hero-bg::before{content:"";position:absolute;width:min(780px,90vw);height:min(780px,90vw);right:-16%;top:-34%;
   background:radial-gradient(circle,rgba(11,92,255,.10) 0%,rgba(11,92,255,.03) 46%,transparent 68%);border-radius:50%}
@@ -142,7 +144,7 @@ html[data-theme="dark"] .theme-btn .icon-moon{display:none}
   -webkit-mask-image:radial-gradient(70% 62% at 74% 18%,#000 0%,rgba(0,0,0,.4) 52%,transparent 82%);
   mask-image:radial-gradient(70% 62% at 74% 18%,#000 0%,rgba(0,0,0,.4) 52%,transparent 82%)}
 html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(77,141,255,.16) 0%,rgba(77,141,255,.05) 46%,transparent 68%)}
-.hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(40px,5vw,72px);align-items:center}
+.hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(40px,5vw,72px);align-items:center;perspective:1500px;perspective-origin:56% 46%}
 .hero-copy{max-width:620px}
 .eyebrow{display:inline-flex;align-items:center;gap:.6rem;padding:.42rem .95rem;border:1px solid var(--line);border-radius:var(--pill);
   background:var(--panel);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
@@ -324,6 +326,10 @@ html[data-theme="dark"] .hero-bg::before{background:radial-gradient(circle,rgba(
 /* reveal */
 .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease),transform .8s var(--ease);transition-delay:var(--d,0ms)}
 .reveal.in{opacity:1;transform:none}
+/* keep the lift on hover (reveal.in would otherwise win the cascade) */
+.product-card.reveal.in:hover{transform:translateY(-6px)}
+.cta-panel.reveal{opacity:0;transform:translateY(30px) scale(.972)}
+.cta-panel.reveal.in{opacity:1;transform:none}
 
 /* ============================================================
    MOTION LAYER — Lenis smooth scroll · masked titles · rail
@@ -350,6 +356,8 @@ html.lenis,html.lenis body{height:auto}
 .split.in .line-in{transform:none}
 
 /* hero entrance */
+.hero-copy{will-change:transform,opacity}
+.hero-art,.hero-bg{will-change:transform}
 .eyebrow,.hero-sub,.hero-actions,.hero-notes{opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform 1s var(--ease)}
 body.loaded .eyebrow{opacity:1;transform:none;transition-delay:.3s}
 body.loaded .hero-sub{opacity:1;transform:none;transition-delay:.46s}
@@ -371,10 +379,13 @@ body.loaded .hero-scroll-cue{opacity:1}
 @keyframes cueDrop{0%{top:-60%}70%,100%{top:110%}}
 
 /* marquee */
-.marquee{position:relative;overflow:hidden;padding:clamp(16px,2.2vw,28px) 0;border-top:1px solid var(--line);
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
-.marquee-track{display:flex;width:max-content;animation:marquee 34s linear infinite;will-change:transform}
+.marquee{position:relative;overflow:hidden;padding:clamp(16px,2.2vw,28px) 0;border-top:1px solid var(--line)}
+.marquee::before,.marquee::after{content:"";position:absolute;top:0;bottom:0;width:clamp(40px,7vw,96px);z-index:1;pointer-events:none}
+.marquee::before{left:0;background:linear-gradient(90deg,var(--bg) 0%,rgba(255,255,255,0) 100%)}
+.marquee::after{right:0;background:linear-gradient(270deg,var(--bg) 0%,rgba(255,255,255,0) 100%)}
+html[data-theme="dark"] .marquee::before{background:linear-gradient(90deg,var(--bg) 0%,rgba(7,11,20,0) 100%)}
+html[data-theme="dark"] .marquee::after{background:linear-gradient(270deg,var(--bg) 0%,rgba(7,11,20,0) 100%)}
+.marquee-track{display:flex;width:max-content;animation:marquee 42s linear infinite;will-change:transform}
 .marquee-track span{display:block;white-space:nowrap;padding-right:clamp(30px,4vw,60px);
   font-size:clamp(20px,3.2vw,40px);font-weight:700;letter-spacing:-.01em;text-transform:uppercase;line-height:1.1;
   color:transparent;-webkit-text-stroke:1px var(--line-strong)}
@@ -386,17 +397,21 @@ body.loaded .hero-scroll-cue{opacity:1}
 .rail-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center;
   gap:clamp(20px,3.4vh,42px);overflow:hidden}
 .rail-head{width:min(1200px,calc(100% - 48px));margin-inline:auto}
-.rail-viewport{overflow:visible}
+.rail-viewport{position:relative;overflow:hidden;padding-block:16px;margin-block:-16px}
+.rail-viewport::before,.rail-viewport::after{content:"";position:absolute;top:0;bottom:0;width:76px;z-index:2;pointer-events:none}
+.rail-viewport::before{left:0;background:linear-gradient(90deg,var(--bg) 0%,rgba(255,255,255,0) 100%)}
+.rail-viewport::after{right:0;background:linear-gradient(270deg,var(--bg) 0%,rgba(255,255,255,0) 100%)}
+html[data-theme="dark"] .rail-viewport::before{background:linear-gradient(90deg,var(--bg) 0%,rgba(7,11,20,0) 100%)}
+html[data-theme="dark"] .rail-viewport::after{background:linear-gradient(270deg,var(--bg) 0%,rgba(7,11,20,0) 100%)}
 .rail-track{display:flex;gap:20px;width:max-content;margin-top:0;will-change:transform;
   padding-inline:max(24px,calc((100vw - 1200px)/2))}
 .rail-track .product-card{flex:0 0 clamp(300px,25vw,356px);width:clamp(300px,25vw,356px);
-  min-height:clamp(306px,44vh,420px);margin-top:0}
-.rail-hint{display:flex;align-items:center;justify-content:center;gap:12px;
-  font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
-.rail-hint svg{width:30px;height:10px;overflow:visible}
-.rail-hint .h-line{display:block;width:46px;height:1px;background:var(--line-strong);position:relative}
-.rail-hint .h-line::after{content:"";position:absolute;top:0;left:-14%;width:30%;height:100%;background:var(--brand);animation:hintSweep 2s cubic-bezier(.6,0,.3,1) infinite}
-@keyframes hintSweep{0%{left:-30%}60%,100%{left:100%}}
+  min-height:clamp(300px,42vh,404px);margin-top:0}
+.rail-hint{display:flex;align-items:center;justify-content:center;gap:14px;color:var(--ink-3)}
+.rail-hint .rail-bar{display:block;width:140px;height:2px;border-radius:2px;background:var(--line);overflow:hidden}
+.rail-hint .rail-bar i{display:block;height:100%;width:100%;background:var(--grad);transform:scaleX(0);transform-origin:0 50%;will-change:transform}
+.rail-hint .rail-num{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.rail-hint .rail-num b{color:var(--ink);font-weight:600}
 
 /* stats counters */
 .stat b{font-variant-numeric:tabular-nums}
@@ -430,7 +445,7 @@ body.loaded .hero-scroll-cue{opacity:1}
   .nav-links.open a{padding:12px 14px;border-radius:10px;font-size:.95rem}
   .nav-links.open a::after{display:none}
   .nav-links.open a:hover{background:var(--brand-soft);color:var(--brand)}
-  .hero{padding-top:52px}
+  .hero{padding-top:52px;padding-bottom:8px;min-height:auto}
   .hero-grid{grid-template-columns:1fr;gap:48px}
   .hero-copy{max-width:none}
   .hero-art{max-width:560px;margin-inline:auto;width:100%}
@@ -449,7 +464,8 @@ body.loaded .hero-scroll-cue{opacity:1}
   .hero-scroll-cue{display:none}
   .products.rail{height:auto!important;padding:clamp(72px,9vw,124px) 0}
   .rail-sticky{position:static;height:auto;overflow:visible;gap:0}
-  .rail-viewport{overflow:visible}
+  .rail-viewport{overflow:visible;padding-block:0;margin-block:0}
+  .rail-viewport::before,.rail-viewport::after{content:none}
   .rail-track{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;width:auto;
     padding-inline:0;transform:none!important;margin-top:36px}
   .rail-track .product-card{width:auto;flex:auto;min-height:0}
@@ -620,9 +636,9 @@ body.loaded .hero-scroll-cue{opacity:1}
         <div class="rail-track" id="productGrid"></div>
       </div>
       <div class="rail-hint" aria-hidden="true">
-        <span class="h-line"></span>
+        <span class="rail-num"><b id="railIdx">01</b> / <span id="railTotal">06</span></span>
+        <span class="rail-bar"><i id="railBar"></i></span>
         <span data-zh="横向浏览" data-en="Scroll sideways">横向浏览</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M15 6l6 6-6 6"/></svg>
       </div>
     </div>
   </section>
@@ -1075,12 +1091,26 @@ body.loaded .hero-scroll-cue{opacity:1}
   /* ---------- products rail ---------- */
   function measureRail() {
     if (!products || !railTrack) return;
+    railCards = railTrack.children;
+    const n = railCards.length;
+    if (railTotalEl) railTotalEl.textContent = String(Math.max(1, n)).padStart(2, '0');
     if (window.innerWidth <= 900) {
       railMax = 0;
+      cache.railX = 'none';
+      railTrack.style.transform = 'none';
+      for (const c of railCards) c.style.scale = '';
       products.style.removeProperty('--rail-x');
       products.style.height = '';
       measureAll();
       return;
+    }
+    railCount = Math.max(1, n);
+    cardScale.length = 0;
+    if (n) {
+      const cs = getComputedStyle(railTrack);
+      railCardW = railCards[0].offsetWidth || 356;
+      railGap = parseFloat(cs.columnGap) || 20;
+      railPadL = parseFloat(cs.paddingLeft) || 0;
     }
     railMax = Math.max(0, railTrack.scrollWidth - window.innerWidth);
     const tail = Math.round(vh() * 0.16);
@@ -1105,11 +1135,11 @@ body.loaded .hero-scroll-cue{opacity:1}
   let lenis = null;
   if (window.Lenis && !reduceMotion) {
     lenis = new Lenis({
-      duration: 1.18,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 0.95,
+      easing: (t) => 1 - Math.pow(1 - t, 3),
       smoothWheel: true,
-      wheelMultiplier: 1.05,
-      touchMultiplier: 1.35,
+      wheelMultiplier: 1.12,
+      touchMultiplier: 1.4,
       gestureOrientation: 'vertical'
     });
     const lenisRaf = (t) => { lenis.raf(t); requestAnimationFrame(lenisRaf); };
@@ -1126,40 +1156,102 @@ body.loaded .hero-scroll-cue{opacity:1}
     return v;
   }
 
+  /* hero pointer tilt — desktop pointers only */
+  const tilt = { x: 0, y: 0 };
+  if (!reduceMotion && window.innerWidth > 900) {
+    const heroEl = document.querySelector('.hero');
+    if (heroEl) {
+      heroEl.addEventListener('pointermove', (e) => {
+        if (e.pointerType === 'touch') return;
+        const r = heroArt.getBoundingClientRect();
+        const nx = (e.clientX - (r.left + r.width / 2)) / Math.max(1, r.width);
+        const ny = (e.clientY - (r.top + r.height / 2)) / Math.max(1, r.height);
+        tilt.y = clamp(nx, -0.55, 0.55) * 9;
+        tilt.x = clamp(-ny, -0.55, 0.55) * 6;
+      }, { passive: true });
+      heroEl.addEventListener('pointerleave', () => { tilt.x = 0; tilt.y = 0; });
+    }
+  }
+
   let lastY = window.scrollY;
   let lastT = performance.now();
+  let lastMove = performance.now();
   let loaded = false;
+
+  /* only touch the DOM when the composed value actually changes */
+  const cache = Object.create(null);
+  function setStyle(el, key, value, prop = 'transform') {
+    if (cache[key] === value) return;
+    cache[key] = value;
+    el.style[prop] = value;
+  }
+
+  const railIdxEl = $('#railIdx');
+  const railBarEl = $('#railBar');
+  const railTotalEl = $('#railTotal');
+  let railCount = 6;
+  let railCards = [];
+  let railCardW = 356, railGap = 20, railPadL = 120;
+  const cardScale = [];
 
   function update(dt) {
     const sy = window.scrollY || 0;
-    scrollProgress.style.transform = `scaleX(${(sy / docMax).toFixed(4)})`;
+    const now = performance.now();
+
+    setStyle(scrollProgress, 'progress', `scaleX(${(sy / docMax).toFixed(3)})`);
 
     header.classList.toggle('scrolled', sy > 6);
     const menuOpen = navLinks.classList.contains('open');
-    if (!menuOpen && sy > lastY + 8 && sy > 130) header.classList.add('hide');
-    else if (sy < lastY - 8 || sy < 80) header.classList.remove('hide');
+    if (Math.abs(sy - lastY) > 0.5) lastMove = now;
+    if (!menuOpen) {
+      if (sy > 140 && sy - lastY > 3) header.classList.add('hide');
+      else if (sy < lastY - 3 || sy < 140) header.classList.remove('hide');
+      /* long dives (like the rail) get the header back once scrolling settles */
+      if (now - lastMove > 620) header.classList.remove('hide');
+    }
 
-    /* hero parallax */
-    const hp = clamp(sy / (vh() * 0.95));
-    heroCopy.style.transform = `translate3d(0,${smooth('copyY', -sy * 0.13, 0.2, dt).toFixed(2)}px,0)`;
-    heroCopy.style.opacity = String(clamp(1 - hp * 0.95));
-    heroArt.style.transform = `translate3d(0,${smooth('artY', sy * 0.05, 0.2, dt).toFixed(2)}px,0)`;
-    heroBg.style.transform = `translate3d(0,${smooth('bgY', sy * 0.08, 0.2, dt).toFixed(2)}px,0)`;
-    if (loaded) cue.style.opacity = String(clamp(1 - sy / 260));
+    /* hero parallax — skip once the hero has left the screen */
+    if (!reduceMotion && sy < vh() * 1.6) {
+      const copyY = smooth('copyY', -sy * 0.1, 0.3, dt);
+      setStyle(heroCopy, 'copyY', `translate3d(0,${copyY.toFixed(2)}px,0)`);
+      setStyle(heroCopy, 'copyO', String(clamp(1 - sy / (vh() * 0.92)).toFixed(3)), 'opacity');
+      const artY = smooth('artY', sy * 0.028, 0.3, dt);
+      const tX = smooth('tiltX', tilt.x, 0.16, dt);
+      const tY = smooth('tiltY', tilt.y, 0.16, dt);
+      setStyle(heroArt, 'artY', `translate3d(0,${artY.toFixed(2)}px,0) rotateX(${tX.toFixed(2)}deg) rotateY(${tY.toFixed(2)}deg)`);
+      const bgY = smooth('bgY', sy * 0.06, 0.3, dt);
+      setStyle(heroBg, 'bgY', `translate3d(0,${bgY.toFixed(2)}px,0)`);
+      if (loaded) setStyle(cue, 'cueO', String(clamp(1 - sy / 260).toFixed(3)), 'opacity');
+    }
 
-    /* products rail */
+    /* products rail — pinned 1:1 to the Lenis-smoothed scroll position */
     if (railMax > 0 && window.innerWidth > 900) {
       const p = clamp((sy - railStart) / railSpan);
-      railTrack.style.transform = `translate3d(${smooth('railX', -p * railMax, 0.22, dt).toFixed(2)}px,0,0)`;
+      const railX = -p * railMax;
+      setStyle(railTrack, 'railX', `translate3d(${railX.toFixed(2)}px,0,0)`);
+      setStyle(railBarEl, 'railBar', `scaleX(${p.toFixed(3)})`);
+      const idx = String(Math.min(railCount, Math.floor(p * (railCount - 1)) + 1)).padStart(2, '0');
+      if (cache.railIdx !== idx) { cache.railIdx = idx; railIdxEl.textContent = idx; }
+      /* cards ease down in size toward the edges — a depth cue, no layout reads */
+      if (railArmed) {
+        const w = window.innerWidth;
+        for (let i = 0; i < railCards.length; i++) {
+          const center = railPadL + i * (railCardW + railGap) + railCardW / 2 + railX;
+          const d = clamp(Math.abs(center - w * 0.5) / (w * 0.5 + railCardW * 0.5));
+          const s = (1 - 0.055 * d).toFixed(3);
+          if (cardScale[i] !== s) { cardScale[i] = s; railCards[i].style.scale = s; }
+        }
+      }
       if (!railArmed) armRailCards();
-    } else {
+    } else if (cache.railX !== 'none') {
+      cache.railX = 'none';
       railTrack.style.transform = 'none';
     }
 
     /* spotlight drift */
     if (spotlight && chatCard) {
       const p = clamp((vh() - (spotTop - sy)) / (vh() + spotH));
-      chatCard.style.transform = `translate3d(0,${smooth('chatY', (p - 0.5) * -44, 0.16, dt).toFixed(2)}px,0)`;
+      setStyle(chatCard, 'chatY', `translate3d(0,${smooth('chatY', (p - 0.5) * -44, 0.16, dt).toFixed(2)}px,0)`);
     }
 
     lastY = sy;
@@ -1215,7 +1307,7 @@ body.loaded .hero-scroll-cue{opacity:1}
     const target = $(id);
     if (!target) return;
     e.preventDefault();
-    if (lenis) lenis.scrollTo(target, { offset: -84, duration: 1.45 });
+    if (lenis) lenis.scrollTo(target, { offset: -84, duration: 1.15 });
     else target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
   });
 
@@ -1242,6 +1334,10 @@ body.loaded .hero-scroll-cue{opacity:1}
   observeReveals();
   measureRail();
   armRailCards();
+
+  /* metrics settle once fonts / late layout are in */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => measureRail());
+  window.addEventListener('load', () => measureRail(), { once: true });
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
     loaded = true;
