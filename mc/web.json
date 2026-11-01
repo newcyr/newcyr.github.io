@@ -1,9 +1,9 @@
 {
   "status": "online",
-  "ws": "wss://3182f9b9.r8.cpolar.cn/",
-  "base": "https://3182f9b9.r8.cpolar.cn",
+  "ws": "wss://2381d315.r8.cpolar.cn/",
+  "base": "https://2381d315.r8.cpolar.cn",
   "version": "1.21.8",
   "motd": "我的世界 汉化版联机服 §7| 登录后进入",
-  "updatedAt": "2026-11-01T13:16:44.303Z",
+  "updatedAt": "2026-11-01T13:45:09.723Z",
   "site": "https://newcyr.github.io/mc/"
 }
