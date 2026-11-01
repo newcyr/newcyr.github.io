@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html style="width:100%;height:100%;background-color:black;">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+		<meta name="description" content="EaglercraftX 1.8.8 - 浏览器里直接玩 Minecraft" />
+		<title>EaglercraftX 1.8.8 - 网页版 Minecraft</title>
+		<link type="image/png" rel="shortcut icon" href="favicon.png" />
+		<script type="text/javascript" src="classes.js"></script>
+		<script type="text/javascript">
+			"use strict";
+
+			// 把用户/URL 传入的地址标准化成 Eaglercraft 需要的 ws(s)://.../ 形式
+			function normalizeServerAddr(addr) {
+				addr = String(addr).trim();
+				if (!/^wss?:\/\//i.test(addr)) addr = "ws://" + addr;
+				if (addr.indexOf("/", 8) === -1) addr += "/";
+				addr = addr.replace(/\/+$/, "") + "/";
+				return addr;
+			}
+
+			window.addEventListener("load", function() {
+				if(window.location.href.indexOf("file:") === 0) {
+					alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP");
+					return;
+				}
+
+				window.eaglercraftXOpts = {
+					demoMode: false,
+					container: "game_frame",
+					assetsURI: "assets.epk",
+					localesURI: "lang/",
+					worldsDB: "worlds",
+					servers: [
+						// 本地测试服（页面用 http 打开时生效；https 页面请用 ?server=wss://... 形式）
+						{ addr: "ws://127.0.0.1:8081/", name: "NewCyr 本机服务端 (8081)" }
+					],
+					relays: []
+				};
+
+				// 支持 ?server=<地址> 或 ?joinServer=<地址> 自动进入服务器
+				var q = window.location.search;
+				if((typeof q === "string") && q[0] === "?" && (typeof window.URLSearchParams !== "undefined")) {
+					q = new window.URLSearchParams(q);
+					var s = q.get("server") || q.get("joinServer");
+					if(s) window.eaglercraftXOpts.joinServer = normalizeServerAddr(s);
+				}
+
+				main();
+			});
+		</script>
+	</head>
+	<body style="margin:0px;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
+	</body>
+</html>
