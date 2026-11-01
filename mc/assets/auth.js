@@ -1,36 +1,21 @@
-/* 我的世界联机服 · 登录凭证模块
- * 登录凭证写入 localStorage，有效期 30 天，全站通用；
- * 无本地后台时仍可凭缓存进入联机页，仅服务器相关功能不可用。
+/* NEWCYR 站点 · 登录凭证模块
+ * 账号数据只保存在本机后端（D:\newcyr\data\accounts.json），站点不保存任何密码哈希；
+ * 登录必须由后端签发 token，token 缓存在 localStorage，有效期 30 天，全站通用。
  */
 (function () {
   const KEY = 'mc_auth_v1';
   const BACKEND_KEY = 'mc_backend';
+  const AUTO_BACKEND_KEY = 'mc_backend_auto';
   const DAY = 24 * 60 * 60 * 1000;
   const TTL = 30 * DAY;
   const DEFAULT_BACKEND = 'http://127.0.0.1:8860';
 
-  /* auth.js 位于 <站点根>/mc/assets/，账号数据固定读取 /mc/accounts.json，
-     这样 /login、/signup 等站内其它路径也能做离线校验 */
+  /* auth.js 位于 <站点根>/mc/assets/，后台地址清单固定读取 /mc/backend.json */
   const MC_BASE = (function () {
     const src = document.currentScript ? document.currentScript.src : '';
     const m = src.match(/^([^?#]*)\/assets\/auth\.js/);
     return m ? m[1] : '';
   })();
-
-  const enc = new TextEncoder();
-
-  function b64ToBytes(b64) {
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return bytes;
-  }
-
-  function bytesToB64(bytes) {
-    let bin = '';
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return btoa(bin);
-  }
 
   function readAuth() {
     try {
@@ -74,11 +59,32 @@
   }
 
   function backendBase() {
-    return (localStorage.getItem(BACKEND_KEY) || DEFAULT_BACKEND).replace(/\/+$/, '');
+    const manual = localStorage.getItem(BACKEND_KEY);
+    if (manual) return manual.replace(/\/+$/, '');
+    return (localStorage.getItem(AUTO_BACKEND_KEY) || DEFAULT_BACKEND).replace(/\/+$/, '');
   }
 
   function setBackendBase(url) {
     localStorage.setItem(BACKEND_KEY, url.replace(/\/+$/, ''));
+  }
+
+  function clearBackendBase() {
+    localStorage.removeItem(BACKEND_KEY);
+  }
+
+  /* 从站点静态文件 backend.json 自动获取后台公网地址 */
+  async function discoverBackend() {
+    try {
+      const res = await fetch(MC_BASE + '/backend.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data || data.status !== 'online' || !data.base) return null;
+      const base = String(data.base).replace(/\/+$/, '');
+      localStorage.setItem(AUTO_BACKEND_KEY, base);
+      return base;
+    } catch (e) {
+      return null;
+    }
   }
 
   async function apiCall(path, options) {
@@ -107,28 +113,6 @@
     }
   }
 
-  async function loadAccounts() {
-    const res = await fetch(MC_BASE + '/accounts.json?t=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) throw new Error('账号数据加载失败（' + res.status + '）');
-    const data = await res.json();
-    return data.accounts || [];
-  }
-
-  async function verifyPasswordLocal(email, password) {
-    const accounts = await loadAccounts();
-    const account = accounts.find((a) => a.email === email);
-    if (!account) throw new Error('该邮箱尚未注册，请联系服主开通账号');
-    const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits({
-      name: 'PBKDF2',
-      salt: b64ToBytes(account.salt),
-      iterations: account.iterations || 100000,
-      hash: 'SHA-256'
-    }, key, 256);
-    if (bytesToB64(new Uint8Array(bits)) !== account.hash) throw new Error('邮箱或密码错误');
-    return account;
-  }
-
   async function loginPassword(email, password) {
     const mail = email.trim().toLowerCase();
     try {
@@ -136,12 +120,16 @@
       return { auth: saveAuth(data.user, data.token), mode: 'online' };
     } catch (e) {
       if (e.status) throw e;
-      const account = await verifyPasswordLocal(mail, password);
-      return {
-        auth: saveAuth({ email: account.email, nickname: account.nickname, avatar: account.avatar, bio: account.bio }, ''),
-        mode: 'offline'
-      };
+      throw new Error('无法连接登录服务（' + backendBase() + '），请确认本机后台已启动，或在页面下方填写正确的后台地址');
     }
+  }
+
+  async function register(email, password, nickname) {
+    const data = await apiCall('/api/auth/register', {
+      method: 'POST',
+      body: { email: email.trim().toLowerCase(), password, nickname: nickname || '' }
+    });
+    return { auth: saveAuth(data.user, data.token), user: data.user };
   }
 
   async function sendCode(email) {
@@ -191,8 +179,8 @@
 
   window.MCAuth = {
     readAuth, saveAuth, updateAuth, logout,
-    backendBase, setBackendBase, apiCall,
-    loginPassword, sendCode, loginCode,
+    backendBase, setBackendBase, clearBackendBase, discoverBackend, apiCall,
+    loginPassword, register, sendCode, loginCode,
     requireLogin, goLogin, resizeImage,
     TTL, KEY
   };
