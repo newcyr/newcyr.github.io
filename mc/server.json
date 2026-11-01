@@ -1,10 +1,10 @@
 {
-    "status":  "offline",
-    "url":  null,
-    "host":  null,
-    "port":  25565,
+    "status":  "online",
+    "url":  "tcp://5.tcp.cpolar.cn:14110",
+    "host":  "5.tcp.cpolar.cn",
+    "port":  14110,
     "version":  "1.21.8",
     "motd":  "我的世界 汉化版联机服 §7| 登录后进入",
-    "updatedAt":  "2026-11-01T05:35:13.9203732Z",
+    "updatedAt":  "2026-11-01T05:36:16.0015378Z",
     "site":  "https://newcyr.github.io/mc/"
 }
