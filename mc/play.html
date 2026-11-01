@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>联机大厅 · 我的世界汉化联机服</title>
+<link rel="stylesheet" href="assets/mc.css" />
+<script src="assets/auth.js"></script>
+<script>
+/* 未登录用户无法访问联机界面 */
+(function () {
+  if (!window.MCAuth || !MCAuth.readAuth()) {
+    location.replace('login.html?next=play.html');
+  }
+})();
+</script>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="block-logo"></span>我的世界 · 汉化联机服</a>
+    <div class="nav-spacer"></div>
+    <nav class="nav-links"><a href="index.html">首页</a></nav>
+    <span id="user-chip"></span>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <div>
+      <h2>联机大厅</h2>
+      <p id="welcome">欢迎回来</p>
+    </div>
+    <button class="btn ghost small" id="logout">退出登录</button>
+  </div>
+
+  <div class="grid2">
+    <section class="card play-card">
+      <h3>服务器信息</h3>
+      <div class="status-line">
+        <span class="dot" id="status-dot"></span>
+        <span id="status-text" style="font-size:18px">读取中…</span>
+      </div>
+      <div class="addr" id="server-addr">—</div>
+      <div class="meta-line" id="server-meta"></div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn primary small" id="copy-addr">复制地址</button>
+        <button class="btn ghost small" id="refresh-status">刷新状态</button>
+      </div>
+
+      <ul class="join-steps">
+        <li><span class="n">1</span>打开 Minecraft Java 版 <b id="step-version">1.21.8</b>（建议使用汉化客户端）</li>
+        <li><span class="n">2</span>多人游戏 → 添加服务器，地址填入上方公网地址</li>
+        <li><span class="n">3</span>服务器为离线验证模式，昵称任意填写即可进入</li>
+        <li><span class="n">4</span>若显示离线，说明服主尚未启动服务，请稍后再试</li>
+      </ul>
+    </section>
+
+    <section class="card profile-card">
+      <h3>个人中心</h3>
+      <div class="avatar-row">
+        <span class="avatar avatar-big" id="profile-avatar">?</span>
+        <div>
+          <label class="btn ghost small file-btn" id="avatar-label">
+            更换头像
+            <input type="file" accept="image/*" id="avatar-file" />
+          </label>
+          <div class="meta-line" id="profile-email"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="nickname">昵称</label>
+        <input id="nickname" maxlength="16" placeholder="1-16 个字符" />
+      </div>
+      <div class="field">
+        <label for="bio">个人简介</label>
+        <textarea id="bio" rows="3" maxlength="200" placeholder="介绍一下自己吧"></textarea>
+      </div>
+      <button class="btn primary" id="save-profile" style="width:100%">保存个人资料</button>
+      <p class="msg" id="profile-msg"></p>
+      <div class="outline-note" id="token-note" style="display:none">
+        当前为离线缓存凭证，修改资料需通过本机后台（8860）在线登录。
+      </div>
+      <div class="meta-line" id="token-exp">凭证有效期至：—</div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <span>登录凭证保存在本机浏览器，有效期 30 天，全站通用</span>
+    <span><a href="index.html">返回首页</a></span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var auth = MCAuth.readAuth();
+  if (!auth) { location.replace('login.html?next=play.html'); return; }
+
+  var chip = document.getElementById('user-chip');
+  chip.innerHTML = '<span class="user-chip">'
+    + (auth.avatar ? '<span class="avatar"><img src="' + auth.avatar + '" alt=""></span>' : '<span class="avatar">' + auth.nickname.slice(0, 1) + '</span>')
+    + '<span>' + auth.nickname + '</span></span>';
+
+  document.getElementById('welcome').textContent = '欢迎回来，' + auth.nickname + '（' + auth.email + '）';
+  document.getElementById('profile-email').textContent = auth.email;
+  document.getElementById('nickname').value = auth.nickname;
+  document.getElementById('bio').value = auth.bio || '';
+  document.getElementById('profile-avatar').innerHTML = auth.avatar
+    ? '<img src="' + auth.avatar + '" alt="avatar">'
+    : auth.nickname.slice(0, 1);
+  document.getElementById('token-exp').textContent = '凭证有效期至：' + new Date(auth.exp).toLocaleString('zh-CN');
+
+  if (!auth.token) {
+    document.getElementById('token-note').style.display = '';
+  }
+
+  var serverState = { online: false, url: '' };
+
+  function loadStatus() {
+    fetch('server.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('状态文件不存在');
+        return r.json();
+      })
+      .then(function (s) {
+        var online = s && s.status === 'online' && s.url;
+        serverState.online = !!online;
+        serverState.url = online ? s.url.replace('tcp://', '') : '';
+        document.getElementById('status-dot').className = 'dot' + (online ? ' ok' : '');
+        document.getElementById('status-text').textContent = online ? '在线，可以进入游戏' : '离线，服务器未启动';
+        document.getElementById('server-addr').textContent = online ? serverState.url : '服务器暂未开放，请联系服主';
+        if (s.version) {
+          document.getElementById('step-version').textContent = s.version;
+        }
+        document.getElementById('server-meta').textContent = s.updatedAt
+          ? '状态更新时间：' + new Date(s.updatedAt).toLocaleString('zh-CN')
+          : '';
+      })
+      .catch(function () {
+        document.getElementById('status-text').textContent = '状态读取失败';
+        document.getElementById('server-addr').textContent = '请稍后刷新或联系服主';
+      });
+  }
+
+  loadStatus();
+  document.getElementById('refresh-status').addEventListener('click', loadStatus);
+
+  document.getElementById('copy-addr').addEventListener('click', function () {
+    if (!serverState.online) { alert('服务器当前未开放，暂无可复制的地址'); return; }
+    var text = serverState.url;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { alert('地址已复制：' + text); });
+    } else {
+      var input = document.createElement('input');
+      input.value = text;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      alert('地址已复制：' + text);
+    }
+  });
+
+  var pendingAvatar = null;
+  document.getElementById('avatar-file').addEventListener('change', async function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    try {
+      pendingAvatar = await MCAuth.resizeImage(file, 128);
+      document.getElementById('profile-avatar').innerHTML = '<img src="' + pendingAvatar + '" alt="avatar">';
+      document.getElementById('profile-msg').textContent = '头像已就绪，点击保存生效';
+      document.getElementById('profile-msg').className = 'msg ok';
+    } catch (err) {
+      document.getElementById('profile-msg').textContent = err.message;
+      document.getElementById('profile-msg').className = 'msg err';
+    }
+  });
+
+  document.getElementById('save-profile').addEventListener('click', async function () {
+    var msg = document.getElementById('profile-msg');
+    var btn = document.getElementById('save-profile');
+    msg.textContent = '';
+    if (!auth.token) {
+      msg.textContent = '离线凭证无法修改资料，请通过本机后台登录';
+      msg.className = 'msg err';
+      return;
+    }
+    btn.disabled = true;
+    try {
+      var data = await MCAuth.apiCall('/api/user/profile', {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer ' + auth.token },
+        body: {
+          nickname: document.getElementById('nickname').value.trim(),
+          bio: document.getElementById('bio').value,
+          avatar: pendingAvatar !== null ? pendingAvatar : auth.avatar
+        }
+      });
+      var updated = MCAuth.updateAuth({
+        nickname: data.user.nickname,
+        bio: data.user.bio,
+        avatar: data.user.avatar
+      });
+      auth = updated;
+      pendingAvatar = null;
+      document.getElementById('welcome').textContent = '欢迎回来，' + auth.nickname + '（' + auth.email + '）';
+      document.getElementById('token-exp').textContent = '凭证有效期至：' + new Date(auth.exp).toLocaleString('zh-CN');
+      chip.innerHTML = '<span class="user-chip">'
+        + (auth.avatar ? '<span class="avatar"><img src="' + auth.avatar + '" alt=""></span>' : '<span class="avatar">' + auth.nickname.slice(0, 1) + '</span>')
+        + '<span>' + auth.nickname + '</span></span>';
+      msg.textContent = '资料已保存（同时写入本地后台账号数据）';
+      msg.className = 'msg ok';
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.className = 'msg err';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('logout').addEventListener('click', function () {
+    MCAuth.logout();
+    location.href = 'index.html';
+  });
+})();
+</script>
+</body>
+</html>
