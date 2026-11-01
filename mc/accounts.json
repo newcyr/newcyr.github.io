@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-01T06:00:27.318Z",
+  "updatedAt": "2026-11-01T06:00:56.004Z",
   "site": "https://newcyr.github.io/mc/",
   "accounts": [
     {
@@ -9,15 +9,6 @@
       "avatar": "",
       "salt": "YH1od1Hn/NhbJ7peePeGSQ==",
       "hash": "9SU6oH8D7YXVhoyPLLrqR3dcGZtPflN0ETXYiJGkrhI=",
-      "iterations": 100000
-    },
-    {
-      "email": "tmp-reg@newcyr.local",
-      "nickname": "????",
-      "bio": "",
-      "avatar": "",
-      "salt": "Om/IQlGaFG1wVDiGAnL4iA==",
-      "hash": "Vo3yndKZL7cXtDEHnicXze/oG4177fb+URGU2udLCZc=",
       "iterations": 100000
     }
   ]
