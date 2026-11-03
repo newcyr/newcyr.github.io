@@ -213,6 +213,8 @@ html[data-theme="dark"] .theme-btn .icon-moon{display:none}
 .app-tip i{width:11px;height:11px;border-radius:50%;background:#e8efff;color:#0b5cff;font-style:normal;font-size:7px;font-weight:800;display:grid;place-items:center;flex:none;margin-top:1px}
 .app-tip span{font-size:7.5px;line-height:1.5;color:#6b7688}
 .app-tip b{display:block;font-size:8px;color:#0a1220}
+.app-foot{position:absolute;left:0;right:0;bottom:16px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:7px;color:#8b97ab;letter-spacing:.04em}
+.app-foot svg{width:9px;height:9px}
 .float-card{
   position:absolute;display:flex;align-items:center;gap:6px;padding:.55rem .8rem;border-radius:999px;
   background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm);font-size:.74rem;font-weight:600;
@@ -488,13 +490,20 @@ html[data-theme="dark"] .theme-btn .icon-moon{display:none}
                 <span class="mini-btn">相册导入</span>
               </div>
               <div class="app-result">
-                <div class="result-head"><strong>识别结果</strong><span>识别完成 · 共 20 字</span></div>
+                <div class="result-head"><strong>识别结果</strong><span>识别完成 · 共 24 字</span></div>
                 <p class="result-text">春眠不觉晓，处处闻啼鸟。<br>夜来风雨声，花落知多少。</p>
                 <div class="result-bar"><span>全选</span><span class="blue">复制</span><span>清空</span></div>
               </div>
               <div class="app-tip">
                 <i aria-hidden="true">i</i>
                 <span><b>小贴士</b>保持光线充足、镜头与纸面平行，识别会更准确。</span>
+              </div>
+              <div class="app-foot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#8b97ab" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                  <rect x="5" y="10" width="14" height="10" rx="2.5"/>
+                  <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                </svg>
+                图片与文字仅在本机处理
               </div>
             </div>
           </div>
