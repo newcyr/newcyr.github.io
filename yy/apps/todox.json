@@ -1,0 +1,99 @@
+{
+  "id": "todox",
+  "name": "TodoX",
+  "latin": "LLM → TO DO",
+  "tagline": "用一句话，生成可执行的 Microsoft To Do 计划。",
+  "description": "TodoX 是一款 Android 应用：配置任意 OpenAI 兼容的大模型，用一句话生成带截止日期、优先级与子步骤的计划，连接 Microsoft 账户后可一键写入 Microsoft To Do。",
+  "version": "1.0.0",
+  "channel": "稳定版",
+  "platform": "Android",
+  "os": "Android 7.0+",
+  "updated": "2026-11-03",
+  "released": "2026-11-03",
+  "size": "4.1 MB",
+  "sizeBytes": 4273280,
+  "file": "todox/todox-1.0.0.apk",
+  "page": "todox/",
+  "icon": "todox/icon.png",
+  "iconText": "T",
+  "accent": "#0b5cff",
+  "accent2": "#3b82f6",
+  "category": "AI 效率",
+  "order": 2,
+  "featured": true,
+  "tags": [
+    "AI 计划",
+    "Microsoft To Do",
+    "LLM",
+    "一键同步"
+  ],
+  "keywords": [
+    "TodoX",
+    "待办",
+    "任务",
+    "清单",
+    "计划",
+    "LLM",
+    "AI",
+    "Microsoft To Do",
+    "微软待办",
+    "OpenAI",
+    "DeepSeek",
+    "同步"
+  ],
+  "highlights": [
+    {
+      "title": "一句话生成计划",
+      "desc": "描述目标，LLM 自动拆成 5–12 个可执行任务，并按天或按阶段安排截止日期与优先级。"
+    },
+    {
+      "title": "原生 To Do 字段",
+      "desc": "任务标题、备注、截止日期、重要程度、子检查项，一一对应 Microsoft To Do，不丢结构。"
+    },
+    {
+      "title": "一键同步",
+      "desc": "登录 Microsoft 账户后，一次点击创建新清单，逐条写入任务与子项，无需复制粘贴。"
+    },
+    {
+      "title": "设备码安全登录",
+      "desc": "使用微软官方 OAuth 2.0 设备代码流程：在浏览器完成登录，应用内不接触账户密码。"
+    },
+    {
+      "title": "本地优先",
+      "desc": "API Key 与登录令牌只保存在应用私有目录；没有中转服务器、统计或广告 SDK。"
+    }
+  ],
+  "faq": [
+    {
+      "q": "使用 TodoX 需要准备什么？",
+      "a": "一个兼容 OpenAI Chat Completions 的 LLM API Key（例如 OpenAI、DeepSeek、Moonshot、SiliconFlow 或自建 One API），以及一个可登录 Microsoft To Do 的 Microsoft 账户。应用本身不需要 NEWCYR 账户，也不需要服务器。"
+    },
+    {
+      "q": "支持哪些大模型服务？",
+      "a": "任何提供 /chat/completions 接口并支持 Bearer API Key 的服务都可以。设置里内置 OpenAI 与 DeepSeek 预设，其余服务选择「自定义」并填写 Base URL 与模型名称即可。Base URL 应包含版本路径，例如 https://api.openai.com/v1。"
+    },
+    {
+      "q": "我的计划与 API Key 会被上传到 NEWCYR 吗？",
+      "a": "不会。应用直接请求你配置的 LLM 服务与 Microsoft Graph。NEWCYR 没有中转服务器，页面与应用均不包含统计、广告或第三方追踪 SDK。API Key 与登录令牌保存在 Android 应用私有目录。"
+    },
+    {
+      "q": "同步失败怎么办？",
+      "a": "先检查设置中的 Microsoft 账户状态，令牌可能过期，断开后重新连接即可。其次确认网络可以访问 graph.microsoft.com。403 通常表示授权未完成或权限被组织策略阻止；429 表示请求频率过高，稍后重试即可。"
+    },
+    {
+      "q": "每次同步会不会重复创建清单？",
+      "a": "每次同步都会在 Microsoft To Do 中创建一个名为「TodoX · 计划名称」的新清单，方便整份计划独立管理。如果重复点击同步，会生成多份清单，请在同步前确认。"
+    },
+    {
+      "q": "个人 Microsoft 账户可以使用吗？",
+      "a": "可以。设备代码登录同时支持个人账户与工作/学校账户。若所在组织的策略阻止登录，可在设置中填入自建 Azure 应用的 Client ID：应用需配置为公共客户端、启用设备代码流，并添加委托权限 Tasks.ReadWrite。"
+    }
+  ],
+  "checksum": {
+    "algo": "SHA-256",
+    "value": "7ceecd313e61a8f9835eb203ff4c914d1951e8a4bea07994134d2571bddff7a1"
+  },
+  "links": {
+    "downloadPage": "todox/"
+  }
+}

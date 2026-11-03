@@ -1,0 +1,52 @@
+{
+  "id": "demo",
+  "name": "示例应用",
+  "latin": "DEMO APP",
+  "tagline": "一句话说明这个应用解决什么问题。",
+  "description": "两到三句完整介绍：这是什么、适合谁、有什么特别之处。",
+  "version": "1.0.0",
+  "channel": "稳定版",
+  "platform": "Android",
+  "os": "Android 8.0+",
+  "updated": "2026-11-03",
+  "released": "2026-11-03",
+  "size": "12.3 MB",
+  "sizeBytes": 12897485,
+  "file": "demo/demo-1.0.0.apk",
+  "page": "demo/",
+  "icon": "demo/icon.png",
+  "iconText": "示",
+  "accent": "#0b5cff",
+  "accent2": "#3b82f6",
+  "category": "示例分类",
+  "order": 99,
+  "featured": false,
+  "tags": [
+    "示例标签"
+  ],
+  "keywords": [
+    "示例",
+    "demo",
+    "别名",
+    "用户可能搜索的词"
+  ],
+  "highlights": [
+    {
+      "title": "亮点标题",
+      "desc": "一句话解释这个亮点带来的实际价值。"
+    }
+  ],
+  "faq": [
+    {
+      "q": "常见问题？",
+      "a": "可直接用于页面内检索与知识库展示的答案。"
+    }
+  ],
+  "checksum": {
+    "algo": "SHA-256",
+    "value": "填写安装包的 SHA-256，可留空"
+  },
+  "links": {
+    "downloadPage": "demo/"
+  }
+}

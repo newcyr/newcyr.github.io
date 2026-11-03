@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NEWCYR 应用中心 · 下载与知识检索</title>
+<meta name="description" content="NEWCYR 旗下 Android 应用下载中心：搜索应用与安装知识，查看每个应用的下载页，或直接快速下载最新 APK。内置多条镜像加速线路。">
+<meta name="theme-color" content="#F6F8FC">
+<meta property="og:title" content="NEWCYR 应用中心 · 下载与知识检索">
+<meta property="og:description" content="搜索应用与安装知识，直接下载最新 APK，内置镜像加速线路。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://newcyr.github.io/yy/">
+<meta property="og:image" content="https://newcyr.github.io/yy/todox/icon.png">
+<link rel="canonical" href="https://newcyr.github.io/yy/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230B5CFF'/%3E%3Cpath d='M32 15v26M32 41l10-10M32 41l-10-10M17 50h30' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script>
+(function () {
+  try {
+    var saved = localStorage.getItem('yy-theme');
+    var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) {}
+})();
+</script>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="ui.css">
+</head>
+<body>
+<a class="skip" href="#main">跳到主要内容</a>
+
+<header class="site-header" id="siteHeader">
+  <div class="shell nav">
+    <a class="brand" href="https://newcyr.github.io/" aria-label="NEWCYR 官网">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v10m0 0 3.6-3.6M12 13 8.4 9.4"/>
+          <path d="M5 14.5v4A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5v-4"/>
+        </svg>
+      </span>
+      <span class="brand-text"><b>NEWCYR</b><small>应用中心 · APPS</small></span>
+    </a>
+    <nav class="nav-links" aria-label="主导航">
+      <a href="#apps">应用</a>
+      <a href="#knowledge">知识库</a>
+      <a href="SDK.md">添加应用</a>
+      <a href="https://github.com/newcyr/newcyr.github.io" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="mirror-chip" id="mirrorBtn" type="button" aria-haspopup="dialog" title="切换下载加速线路">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 8h10a4 4 0 0 1 0 8H6a4 4 0 0 1 0-8h2"/><path d="M17 5l3 3-3 3"/>
+        </svg>
+        <span class="mirror-chip-label">线路</span>
+        <b id="mirrorBtnName">本站直连</b>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+      </button>
+      <button class="icon-btn theme-btn" id="themeBtn" type="button" aria-label="切换深色模式">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6 19 19M19 5l-1.4 1.4M6.4 17.6 5 19"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="hero-orb orb-a" aria-hidden="true"></div>
+    <div class="hero-orb orb-b" aria-hidden="true"></div>
+    <div class="hero-grid-bg" aria-hidden="true"></div>
+    <div class="shell hero-inner">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot" aria-hidden="true"></span>NEWCYR · 应用下载中心</span>
+        <h1>搜索应用，<br><span class="grad">一次下载到位。</span></h1>
+        <p class="lead">NEWCYR 旗下 Android 应用的统一入口。搜索应用、功能或安装问题，查看每个应用的下载页，也可以在这里<strong>直接下载最新 APK</strong>。内置多条镜像加速线路，弱网也能完成下载。</p>
+
+        <div class="search-wrap" id="searchWrap">
+          <div class="search-box" id="searchBox">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>
+            </svg>
+            <input id="searchInput" type="text" autocomplete="off" spellcheck="false" enterkeyhint="search"
+              placeholder="搜索应用、功能，或输入「安装失败」…"
+              role="combobox" aria-expanded="false" aria-controls="searchPanel" aria-autocomplete="list" aria-label="搜索应用与知识">
+            <button class="search-clear" id="searchClear" type="button" aria-label="清空搜索" hidden>&times;</button>
+            <kbd class="search-kbd" aria-hidden="true">⌘ K</kbd>
+          </div>
+          <div class="search-panel" id="searchPanel" hidden>
+            <div class="search-panel-head">
+              <span id="searchPanelTitle">快捷入口</span>
+              <span id="searchPanelCount"></span>
+            </div>
+            <div class="search-results" id="searchResults" role="listbox" aria-label="搜索结果"></div>
+            <div class="search-panel-foot"><span>↑↓ 选择 · Enter 打开 · Esc 关闭</span><button type="button" id="searchMirrorBtn">调整线路</button></div>
+          </div>
+        </div>
+
+        <ul class="hero-stats" aria-label="站点统计">
+          <li><b id="statApps">—</b><span>款应用</span></li>
+          <li><b id="statSize">—</b><span>全部安装包</span></li>
+          <li><b id="statMirrors">—</b><span>条下载线路</span></li>
+          <li><b>0</b><span>广告与追踪</span></li>
+        </ul>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="demo-window">
+          <div class="demo-top"><i></i><i></i><i></i><span>知识检索</span></div>
+          <div class="demo-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+            <span>手写识别</span><kbd>⌘ K</kbd>
+          </div>
+          <div class="demo-label">应用 <em>1</em></div>
+          <div class="demo-app-row">
+            <span class="demo-icon">拾</span>
+            <div><b>拾墨</b><small>完全离线的安卓手写识别</small></div>
+            <span class="demo-ver">v1.0.0</span>
+          </div>
+          <div class="demo-label">知识 <em>3</em></div>
+          <div class="demo-k-row"><span>Q</span><p>安装时提示「未知来源」怎么办？</p></div>
+          <div class="demo-k-row"><span>Q</span><p>如何校验安装包完整性？</p></div>
+          <div class="demo-k-row"><span>Q</span><p>下载慢，镜像线路怎么选？</p></div>
+          <div class="demo-progress"><span></span><em>shimo-1.0.0.apk · 45.7 MB</em></div>
+        </div>
+        <div class="float-card fc-a"><span class="pulse"></span>直链下载 · 无需登录</div>
+        <div class="float-card fc-b">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h10a4 4 0 0 1 0 8H6a4 4 0 0 1 0-8h2"/><path d="M17 5l3 3-3 3"/></svg>
+          <span><b id="statMirrorsFloat">5</b> 条镜像线路</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="apps-section" id="apps">
+    <div class="shell">
+      <div class="section-head apps-head">
+        <div class="head-copy">
+          <span class="kicker">Applications</span>
+          <h2>全部应用</h2>
+          <p>点击「详情」查看功能与安装说明，或直接快速下载最新安装包。</p>
+        </div>
+        <div class="apps-toolbar">
+          <div class="filter-chips" id="categoryChips" role="tablist" aria-label="应用分类"></div>
+          <label class="sort-wrap">
+            <span>排序</span>
+            <select id="sortSelect" aria-label="应用排序">
+              <option value="updated">最近更新</option>
+              <option value="name">名称</option>
+              <option value="size">体积</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="app-grid" id="appGrid" aria-live="polite" aria-busy="true"></div>
+      <noscript><p class="grid-empty">请启用 JavaScript 查看应用列表与下载入口。</p></noscript>
+      <p class="grid-empty" id="gridEmpty" hidden>这个分类下还没有应用。</p>
+    </div>
+  </section>
+
+  <section class="knowledge-section" id="knowledge">
+    <div class="shell">
+      <div class="section-head knowledge-head">
+        <div class="head-copy">
+          <span class="kicker">Knowledge</span>
+          <h2>下载与安装知识库</h2>
+          <p>关于安装、校验与镜像线路的常见问题。也可以直接用上方搜索框检索每个应用的具体问答。</p>
+        </div>
+        <a class="btn btn-ghost" href="SDK.md">查看接入 SDK
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+      <div class="knowledge-grid">
+        <div class="knowledge-list" id="knowledgeList" aria-live="polite"></div>
+        <aside class="side-card">
+          <span class="side-kicker">For developers</span>
+          <h3>新增应用，只需要一个 JSON</h3>
+          <p>把配置放进 <code>apps/</code>，在 <code>index.json</code> 里加一行 id，再上传 APK。页面不需要重新构建。</p>
+          <ul class="side-steps">
+            <li><b>01</b>复制模板，填写应用信息</li>
+            <li><b>02</b>把 id 加入 index.json</li>
+            <li><b>03</b>上传 APK，刷新页面</li>
+          </ul>
+          <a class="side-link" href="SDK.md">阅读 SDK.md
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="shell footer-grid">
+    <div class="foot-brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v10m0 0 3.6-3.6M12 13 8.4 9.4"/><path d="M5 14.5v4A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5v-4"/>
+        </svg>
+      </span>
+      <div><b>NEWCYR 应用中心</b><span>下载、检索与镜像加速，一处完成</span></div>
+    </div>
+    <nav class="foot-nav" aria-label="页脚导航">
+      <a href="https://newcyr.github.io/">官网</a>
+      <a href="#apps">应用</a>
+      <a href="#knowledge">知识库</a>
+      <a href="SDK.md">SDK</a>
+      <a href="https://github.com/newcyr/newcyr.github.io" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <p class="foot-note">页面由 <code>apps/</code> 目录中的 JSON 配置驱动，无需构建。安装包均使用开发者证书签名；下载后可对照 SHA-256 校验。</p>
+    <div class="foot-copy">
+      <span>© <span id="year">2026</span> NEWCYR · 应用中心</span>
+      <span>最近更新：<span id="footUpdated">2026-11-03</span></span>
+    </div>
+  </div>
+</footer>
+
+<dialog class="app-dialog" id="appDialog" aria-label="应用详情">
+  <div class="dialog-sheet" id="appDialogBody"></div>
+</dialog>
+
+<dialog class="mirror-dialog" id="mirrorDialog" aria-labelledby="mirrorTitle">
+  <div class="mirror-sheet">
+    <header class="mirror-head">
+      <div>
+        <span class="kicker">Acceleration</span>
+        <h3 id="mirrorTitle">选择下载线路</h3>
+        <p>线路只改变下载地址，安装包内容完全一致。选择会保存在本机浏览器。</p>
+      </div>
+      <button class="dialog-close" id="mirrorClose" type="button" aria-label="关闭">&times;</button>
+    </header>
+    <div class="mirror-list" id="mirrorList" role="radiogroup" aria-label="下载线路"></div>
+    <div class="mirror-actions">
+      <button class="btn btn-ghost" id="mirrorTest" type="button">测速</button>
+      <button class="btn btn-primary" id="mirrorDone" type="button">完成</button>
+    </div>
+    <p class="mirror-foot">大文件会自动回退到本站直连 · 镜像地址与本站内容一致</p>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" popover="manual"></div>
+<script src="app.js" defer></script>
+</body>
+</html>
