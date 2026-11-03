@@ -25,7 +25,7 @@ yy/
 │   └── todox.json              # TodoX
 ├── tq/                         # 应用文件与下载页
 │   ├── index.html
-│   ├── shimo-1.0.0.apk
+│   ├── shimo-1.0.1.apk
 │   └── ...
 └── todox/
     ├── index.html
@@ -36,7 +36,7 @@ yy/
 约定：
 
 - 每个应用一个 `apps/<id>.json`，`id` 与文件名一致，使用小写字母、数字、短横线。
-- 安装包路径 `file` 相对 `/yy/` 写，例如 `tq/shimo-1.0.0.apk`。
+- 安装包路径 `file` 相对 `/yy/` 写，例如 `tq/shimo-1.0.1.apk`。
 - 应用下载页 `page` 相对 `/yy/` 写，例如 `tq/`（末尾斜杠）。
 - 图标 `icon` 相对 `/yy/` 写，例如 `todox/icon.png`；留空则用 `iconText` 生成字母图标。
 
@@ -184,7 +184,7 @@ GitHub Pages 构建完成后（通常数十秒），刷新 <https://newcyr.githu
 | `{repo}` | `repo.name` |
 | `{branch}` | `repo.branch` |
 | `{basePath}` | `repo.basePath`（这里是 `yy`） |
-| `{path}` | `basePath + "/" + app.file`，例如 `yy/tq/shimo-1.0.0.apk` |
+| `{path}` | `basePath + "/" + app.file`，例如 `yy/tq/shimo-1.0.1.apk` |
 
 规则：
 

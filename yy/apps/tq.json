@@ -4,15 +4,15 @@
   "latin": "INKTEXT",
   "tagline": "把手写，拾成文字。",
   "description": "拾墨是一款完全离线的安卓手写识别应用：拍照或从相册选取纸笔手稿，在本机完成识别，结果即刻成为可自由选中、编辑与复制的文字。安装包不申请联网权限，无广告、无账号。",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "channel": "稳定版",
   "platform": "Android",
   "os": "Android 8.0+",
   "updated": "2026-11-03",
   "released": "2026-11-03",
   "size": "45.7 MB",
-  "sizeBytes": 47869261,
-  "file": "tq/shimo-1.0.0.apk",
+  "sizeBytes": 47869453,
+  "file": "tq/shimo-1.0.1.apk",
   "page": "tq/",
   "icon": "",
   "iconText": "拾",
@@ -86,7 +86,7 @@
   ],
   "checksum": {
     "algo": "SHA-256",
-    "value": "ccbdaf9a28f3d7423f8e8af0334d5f638c7fc535d78f24032d9a9b143e9f35d4"
+    "value": "57e87a4862d90512975e3ce4959103f68ac3ef9f404125ba599f0685473a6b66"
   },
   "links": {
     "downloadPage": "tq/"
