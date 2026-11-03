@@ -4,15 +4,15 @@
   "latin": "LLM → TO DO",
   "tagline": "用一句话，生成可执行的 Microsoft To Do 计划。",
   "description": "TodoX 是一款 Android 应用：配置任意 OpenAI 兼容的大模型，用一句话生成带截止日期、优先级与子步骤的计划，连接 Microsoft 账户后可一键写入 Microsoft To Do。",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "channel": "稳定版",
   "platform": "Android",
   "os": "Android 7.0+",
   "updated": "2026-11-03",
   "released": "2026-11-03",
   "size": "4.1 MB",
-  "sizeBytes": 4273280,
-  "file": "todox/todox-1.0.0.apk",
+  "sizeBytes": 4277376,
+  "file": "todox/todox-1.0.1.apk",
   "page": "todox/",
   "icon": "todox/icon.png",
   "iconText": "T",
@@ -55,8 +55,12 @@
       "desc": "登录 Microsoft 账户后，一次点击创建新清单，逐条写入任务与子项，无需复制粘贴。"
     },
     {
-      "title": "设备码安全登录",
-      "desc": "使用微软官方 OAuth 2.0 设备代码流程：在浏览器完成登录，应用内不接触账户密码。"
+      "title": "两种网页安全登录",
+      "desc": "支持微软官方 OAuth 2.0 设备代码与授权码 PKCE 两种流程：在浏览器完成登录，应用内不接触账户密码。"
+    },
+    {
+      "title": "思考模式可关闭",
+      "desc": "设置页可关闭 DeepSeek / 智谱 GLM 的思考模式，回答更快、更省 Token。"
     },
     {
       "title": "本地优先",
@@ -91,7 +95,7 @@
   ],
   "checksum": {
     "algo": "SHA-256",
-    "value": "7ceecd313e61a8f9835eb203ff4c914d1951e8a4bea07994134d2571bddff7a1"
+    "value": "832472a68bf56cbdf5cd02bc0bc36f538e213777fc7d519a1db03be78bbfd843"
   },
   "links": {
     "downloadPage": "todox/"
