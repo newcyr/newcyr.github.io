@@ -192,7 +192,7 @@ GitHub Pages 构建完成后（通常数十秒），刷新 <https://newcyr.githu
 - `kind: "template"`：按 `url` 模板替换占位符。
 - `limitMB`：单文件大小上限；`0` 表示不限。若当前线路不支持正在下载的文件，页面会自动回退到 `direct` 并提示。
 - 新增线路只需追加对象，无需改 JS；`id` 唯一即可。
-- 镜像只是改变下载地址，请确保镜像确实同步本仓库（jsDelivr / raw / Statically 直接读取 GitHub；ghproxy 为代理）。
+- 镜像只是改变下载地址，请确保镜像确实同步本仓库（jsDelivr / raw 直接读取 GitHub；ghproxy 与 ghfast 为第三方代理）。
 
 也可替换为自己的 CDN，例如：
 

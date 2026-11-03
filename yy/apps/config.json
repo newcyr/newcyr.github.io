@@ -48,11 +48,11 @@
       "limitMB": 0
     },
     {
-      "id": "statically",
-      "name": "Statically CDN",
+      "id": "ghfast",
+      "name": "ghfast 加速代理",
       "kind": "template",
-      "url": "https://cdn.statically.io/gh/{owner}/{repo}/{branch}/{path}",
-      "desc": "海外静态资源 CDN，备用线路",
+      "url": "https://ghfast.top/https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}",
+      "desc": "备用第三方加速线路，支持大文件",
       "limitMB": 0
     }
   ],
@@ -70,7 +70,7 @@
     {
       "id": "mirror-diff",
       "question": "这些镜像线路有什么区别？",
-      "answer": "本站直连是 GitHub Pages 官方线路；jsDelivr 与 Statically 是静态资源 CDN，适合页面与小体积安装包；GitHub 加速代理通过第三方节点访问 GitHub Raw，适合大文件；GitHub Raw 是 GitHub 源站，海外网络通常更快。线路仅改变下载地址，安装包内容完全一致。"
+      "answer": "本站直连是 GitHub Pages 官方线路；jsDelivr 是静态资源 CDN，适合页面与小体积安装包；GitHub 加速代理与 ghfast 通过第三方节点访问 GitHub Raw，适合大文件；GitHub Raw 是 GitHub 源站，海外网络通常更快。线路仅改变下载地址，安装包内容完全一致。"
     },
     {
       "id": "checksum",
