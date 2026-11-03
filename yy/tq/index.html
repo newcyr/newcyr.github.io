@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>拾墨 · 手写扫描识别 App 下载 | NEWCYR</title>
+<meta name="description" content="拾墨是一款完全离线的安卓手写识别应用：拍照或从相册选取手写稿，本机识别为可选择的文字，支持全选、编辑与一键复制。Android 8.0+，无联网权限，无广告。">
+<meta name="theme-color" content="#F6F8FC">
+<meta property="og:title" content="拾墨 · 把手写，拾成文字">
+<meta property="og:description" content="安卓手写扫描识别工具：离线识别、自由选择、一键复制。v1.0.0 现已开放下载。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://newcyr.github.io/yy/tq/">
+<link rel="canonical" href="https://newcyr.github.io/yy/tq/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230B5CFF'/%3E%3Cg stroke='%23fff' stroke-width='4' stroke-linecap='round'%3E%3Cpath d='M18 26V18h8M46 18h8v8M18 38v8h8M46 46h8v-8'/%3E%3Cpath d='M26 27h20M26 35h14M26 43h9'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+/* ============================================================
+   拾墨 · InkText — product download page
+   Self-contained · light / dark · no external assets
+   ============================================================ */
+:root{
+  --bg:#f6f8fc;
+  --bg-soft:#eff4fb;
+  --panel:#ffffff;
+  --panel-2:#f7f9fe;
+  --ink:#0a1220;
+  --ink-2:#3d4759;
+  --ink-3:#6b7688;
+  --line:#e4eaf3;
+  --line-strong:#d3dcea;
+  --brand:#0b5cff;
+  --brand-2:#3b82f6;
+  --brand-soft:#e8efff;
+  --brand-ink:#0847c4;
+  --grad:linear-gradient(135deg,#0b5cff 0%,#3b82f6 100%);
+  --grad-text:linear-gradient(135deg,#0b5cff 0%,#3b82f6 100%);
+  --nav-bg:rgba(246,248,252,.82);
+  --shadow-sm:0 1px 2px rgba(15,23,42,.04),0 12px 32px -18px rgba(15,23,42,.18);
+  --shadow-lg:0 2px 8px rgba(15,23,42,.04),0 34px 80px -36px rgba(15,23,42,.30);
+  --r:18px;
+  --r-lg:26px;
+  --pill:999px;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter","Helvetica Neue","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+html[data-theme="dark"]{
+  --bg:#070b14;
+  --bg-soft:#0a1120;
+  --panel:#0d1526;
+  --panel-2:#111b2f;
+  --ink:#f2f6fc;
+  --ink-2:#c3ccdb;
+  --ink-3:#8b97ab;
+  --line:#1c2740;
+  --line-strong:#2a3854;
+  --brand:#4d8dff;
+  --brand-2:#7fb0ff;
+  --brand-soft:rgba(77,141,255,.14);
+  --brand-ink:#a8c6ff;
+  --grad:linear-gradient(135deg,#2f6dff 0%,#5b9bff 100%);
+  --grad-text:linear-gradient(135deg,#8ab6ff 0%,#c2dbff 100%);
+  --nav-bg:rgba(7,11,20,.82);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4),0 14px 34px -18px rgba(0,0,0,.7);
+  --shadow-lg:0 2px 8px rgba(0,0,0,.45),0 34px 74px -30px rgba(0,0,0,.8);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:96px;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--ink);
+  line-height:1.72;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  transition:background-color .45s ease,color .45s ease;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+::selection{background:rgba(11,92,255,.18)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:8px}
+.shell{width:min(1120px,calc(100% - 48px));margin-inline:auto}
+.skip{position:fixed;left:16px;top:-70px;z-index:300;padding:.7rem 1.1rem;background:var(--ink);color:var(--bg);border-radius:10px;transition:top .3s}
+.skip:focus{top:16px}
+
+/* ---------- header ---------- */
+.site-header{
+  position:sticky;top:0;z-index:120;background:var(--nav-bg);
+  backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+  border-bottom:1px solid transparent;transition:border-color .3s ease,box-shadow .3s ease,background-color .45s ease;
+}
+.site-header.scrolled{border-bottom-color:var(--line);box-shadow:0 10px 30px -24px rgba(15,23,42,.4)}
+.nav-wrap{display:flex;align-items:center;gap:clamp(18px,4vw,48px);height:74px}
+.brand{display:inline-flex;align-items:center;gap:.72rem;flex:none}
+.brand-mark{
+  width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center;
+  box-shadow:0 10px 22px -10px rgba(11,92,255,.65);transition:transform .5s var(--ease);
+}
+.brand:hover .brand-mark{transform:rotate(-6deg) scale(1.04)}
+.brand-mark svg{width:19px;height:19px}
+.brand-text{display:flex;flex-direction:column;line-height:1.1}
+.brand-text b{font-size:1rem;font-weight:700;letter-spacing:.1em}
+.brand-text small{font-size:.6rem;letter-spacing:.24em;color:var(--ink-3);margin-top:4px}
+.nav-links{display:flex;align-items:center;gap:clamp(18px,2.6vw,34px);margin-left:auto}
+.nav-links a{font-size:.9rem;font-weight:500;color:var(--ink-2);position:relative;padding:6px 0;transition:color .25s}
+.nav-links a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;border-radius:2px;background:var(--grad);transition:right .35s var(--ease)}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a:hover::after{right:0}
+.nav-actions{display:flex;align-items:center;gap:10px;flex:none}
+.icon-btn{
+  width:38px;height:38px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;
+  background:var(--panel);color:var(--ink-2);transition:border-color .25s,color .25s,transform .4s var(--ease);
+}
+.icon-btn:hover{color:var(--ink);border-color:var(--line-strong);transform:translateY(-1px)}
+.icon-btn svg{width:17px;height:17px}
+.theme-btn .icon-sun{display:none}
+html[data-theme="dark"] .theme-btn .icon-sun{display:block}
+html[data-theme="dark"] .theme-btn .icon-moon{display:none}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+  padding:.84rem 1.45rem;border-radius:var(--pill);font-size:.92rem;font-weight:600;white-space:nowrap;
+  transition:transform .4s var(--ease),box-shadow .4s ease,background .3s ease,border-color .3s ease,color .3s ease;
+}
+.btn svg{width:16px;height:16px;transition:transform .4s var(--ease)}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 12px 28px -14px rgba(11,92,255,.75)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 40px -16px rgba(11,92,255,.8)}
+.btn-primary:hover svg{transform:translateX(3px)}
+.btn-ghost{background:var(--panel);color:var(--ink-2);border:1px solid var(--line)}
+.btn-ghost:hover{transform:translateY(-2px);border-color:var(--line-strong);color:var(--ink);box-shadow:var(--shadow-sm)}
+.btn-lg{padding:1rem 1.7rem;font-size:1rem}
+.nav-cta{padding:.66rem 1.2rem;font-size:.85rem}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;padding:clamp(48px,6vw,80px) 0 clamp(56px,7vw,88px)}
+.hero::before{
+  content:"";position:absolute;width:min(860px,100vw);height:min(860px,100vw);right:-18%;top:-38%;border-radius:50%;
+  background:radial-gradient(circle,rgba(11,92,255,.13) 0%,rgba(11,92,255,.04) 46%,transparent 68%);pointer-events:none;
+}
+.hero::after{
+  content:"";position:absolute;width:min(520px,80vw);height:min(520px,80vw);left:-14%;bottom:-30%;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.09) 0%,transparent 66%);pointer-events:none;
+}
+.hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(28px,5vw,64px);align-items:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.5rem;padding:.42rem .82rem;border-radius:var(--pill);
+  background:var(--brand-soft);color:var(--brand-ink);font-size:.76rem;font-weight:600;letter-spacing:.02em;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 3px rgba(11,92,255,.14)}
+.hero h1{
+  margin:1.1rem 0 1rem;font-size:clamp(2.4rem,5.6vw,4.05rem);line-height:1.14;letter-spacing:-.03em;font-weight:700;
+}
+.grad-text{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{max-width:34em;color:var(--ink-2);font-size:clamp(1rem,1.5vw,1.08rem);line-height:1.85}
+.lead strong{color:var(--ink);font-weight:600}
+.hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.9rem}
+.hero-meta{display:flex;flex-wrap:wrap;gap:.5rem 1.3rem;margin-top:1.6rem;padding:0;list-style:none;color:var(--ink-3);font-size:.8rem}
+.hero-meta li{display:inline-flex;align-items:center;gap:.42rem}
+.hero-meta li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--brand);opacity:.55}
+.trust-note{margin-top:1.2rem;font-size:.76rem;color:var(--ink-3);display:flex;gap:.45rem;align-items:center}
+.trust-note svg{width:14px;height:14px;flex:none;color:var(--brand)}
+
+/* ---------- phone mockup ---------- */
+.hero-visual{position:relative;display:flex;justify-content:center}
+.phone-glow{
+  position:absolute;inset:auto 8% 4% 8%;height:58%;border-radius:50%;filter:blur(44px);
+  background:linear-gradient(135deg,rgba(11,92,255,.16),rgba(59,130,246,.06));z-index:-1;
+}
+.phone{
+  width:292px;height:596px;border-radius:44px;background:#0a1220;padding:9px;position:relative;
+  box-shadow:0 44px 90px -34px rgba(10,18,32,.5),0 3px 0 rgba(255,255,255,.14) inset;
+  animation:float 7s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.phone-screen{position:relative;height:100%;border-radius:36px;background:#f4f7fc;overflow:hidden;color:#0a1220}
+.notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:84px;height:20px;border-radius:999px;background:#0a1220;z-index:5}
+.phone-status{display:flex;justify-content:space-between;align-items:center;padding:13px 22px 0;font-size:9px;font-weight:700;color:#0a1220}
+.status-icons{display:flex;gap:5px;align-items:center}
+.status-icons i{display:block;width:3px;height:8px;border-radius:1px;background:#0a1220;opacity:.75}
+.status-icons i:nth-child(2){height:10px}
+.status-icons i:nth-child(3){height:12px}
+.status-icons b{width:15px;height:8px;border:1px solid #0a1220;border-radius:2px;position:relative;display:block;opacity:.8}
+.status-icons b::after{content:"";position:absolute;inset:1.5px 5px 1.5px 1.5px;background:#0a1220;border-radius:1px}
+.app{padding:12px 14px 0}
+.app-head{display:flex;align-items:center;gap:7px}
+.app-logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#0b5cff,#3b82f6);display:grid;place-items:center}
+.app-logo svg{width:14px;height:14px}
+.app-title{display:flex;flex-direction:column;line-height:1.15}
+.app-title strong{font-size:13px;letter-spacing:.04em}
+.app-title span{font-size:7px;color:#6b7688;margin-top:2px}
+.app-chip{margin-left:auto;padding:3px 7px;border-radius:999px;background:#e8efff;color:#0847c4;font-size:7px;font-weight:700}
+.app-preview{
+  position:relative;margin-top:12px;height:146px;border-radius:16px;border:1px solid #dde7f5;overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,0) 0 21px,rgba(11,92,255,.14) 21px 22px,rgba(255,255,255,0) 22px),
+    repeating-linear-gradient(#fbfcff 0 27px,#e7eefb 27px 28px);
+}
+.paper{position:absolute;inset:16px 16px 12px 30px;display:flex;align-items:center}
+.hand{
+  font-family:"Kaiti SC","STKaiti","KaiTi","Kaiti TC",serif;color:#1e2f52;font-size:16px;line-height:1.9;
+  letter-spacing:.12em;transform:rotate(-2deg);text-shadow:0 0 1px rgba(30,47,82,.22);
+}
+.preview-tag{position:absolute;right:9px;top:9px;font-size:7px;color:#6b7688;background:rgba(255,255,255,.86);border:1px solid #e4eaf3;border-radius:999px;padding:2px 6px}
+.app-actions{display:flex;gap:7px;margin-top:10px}
+.mini-btn{
+  flex:1;text-align:center;font-size:9px;font-weight:700;padding:8px 0;border-radius:10px;
+  border:1px solid #dfe7f4;color:#0b5cff;background:#fff;
+}
+.mini-btn.primary{background:linear-gradient(135deg,#0b5cff,#3b82f6);border-color:transparent;color:#fff;box-shadow:0 8px 16px -8px rgba(11,92,255,.7)}
+.app-result{margin-top:11px;background:#fff;border:1px solid #e4eaf3;border-radius:16px;padding:11px}
+.result-head{display:flex;justify-content:space-between;align-items:center;font-size:9px}
+.result-head strong{font-size:10px}
+.result-head span{font-size:7px;color:#6b7688}
+.result-text{margin-top:8px;font-size:9.5px;line-height:1.75;color:#0a1220;min-height:64px}
+.result-bar{display:flex;gap:12px;border-top:1px solid #e4eaf3;margin-top:8px;padding-top:7px;font-size:8px;color:#6b7688}
+.result-bar .blue{color:#0b5cff;font-weight:700}
+.app-tip{display:flex;align-items:flex-start;gap:6px;margin-top:10px;background:#fff;border:1px solid #e4eaf3;border-radius:12px;padding:8px 10px}
+.app-tip i{width:11px;height:11px;border-radius:50%;background:#e8efff;color:#0b5cff;font-style:normal;font-size:7px;font-weight:800;display:grid;place-items:center;flex:none;margin-top:1px}
+.app-tip span{font-size:7.5px;line-height:1.5;color:#6b7688}
+.app-tip b{display:block;font-size:8px;color:#0a1220}
+.float-card{
+  position:absolute;display:flex;align-items:center;gap:6px;padding:.55rem .8rem;border-radius:999px;
+  background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm);font-size:.74rem;font-weight:600;
+  color:var(--ink-2);white-space:nowrap;
+}
+.float-a{left:-14px;top:58px;animation:floatA 6s ease-in-out infinite}
+.float-b{right:-18px;bottom:74px;animation:floatB 7s ease-in-out infinite}
+@keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.14);flex:none}
+
+/* ---------- section base ---------- */
+.section{padding:clamp(64px,8vw,96px) 0}
+.section-head{max-width:640px;margin-bottom:clamp(32px,4vw,48px)}
+.section-head.center{margin-inline:auto;text-align:center}
+.kicker{display:block;font-size:.74rem;font-weight:700;letter-spacing:.18em;color:var(--brand);text-transform:uppercase;margin-bottom:.7rem}
+.section-head h2{font-size:clamp(1.7rem,3.4vw,2.5rem);line-height:1.2;letter-spacing:-.02em;font-weight:700}
+.section-head p{margin-top:.8rem;color:var(--ink-2);font-size:.98rem}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- features ---------- */
+.features{background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line);transition:background-color .45s}
+.feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.feature{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:clamp(22px,3vw,30px);
+  box-shadow:var(--shadow-sm);transition:transform .45s var(--ease),border-color .3s,box-shadow .45s;
+}
+.feature:hover{transform:translateY(-4px);border-color:var(--line-strong);box-shadow:var(--shadow-lg)}
+.feature-icon{
+  width:44px;height:44px;border-radius:14px;background:var(--brand-soft);display:grid;place-items:center;margin-bottom:1rem;
+}
+.feature-icon svg{width:21px;height:21px;color:var(--brand)}
+.feature h3{font-size:1.06rem;font-weight:700;letter-spacing:-.01em}
+.feature p{margin-top:.55rem;color:var(--ink-2);font-size:.91rem;line-height:1.8}
+.privacy-band{margin-top:22px;padding:clamp(20px,3vw,28px);border-radius:var(--r-lg);background:var(--panel);border:1px solid var(--line);
+  display:flex;align-items:flex-start;gap:14px;box-shadow:var(--shadow-sm)}
+.privacy-band svg{width:22px;height:22px;color:var(--brand);flex:none;margin-top:2px}
+.privacy-band p{font-size:.9rem;color:var(--ink-2)}
+.privacy-band p b{color:var(--ink)}
+.spec-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin-top:clamp(32px,4vw,46px);background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.spec{background:var(--panel);padding:18px 16px;text-align:center}
+.spec dt{font-size:.7rem;letter-spacing:.12em;color:var(--ink-3);text-transform:uppercase}
+.spec dd{margin-top:5px;font-size:1rem;font-weight:700;color:var(--ink)}
+.spec dd small{font-size:.7rem;font-weight:500;color:var(--ink-3);margin-left:2px}
+
+/* ---------- install steps ---------- */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:step}
+.step{position:relative;padding:clamp(24px,3vw,32px);border-radius:var(--r-lg);background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm);overflow:hidden}
+.step::before{
+  counter-increment:step;content:"0" counter(step);position:absolute;right:18px;top:12px;
+  font-size:2.1rem;font-weight:800;letter-spacing:-.04em;color:var(--brand);opacity:.12;
+}
+.step-icon{width:38px;height:38px;border-radius:12px;background:var(--brand-soft);display:grid;place-items:center;margin-bottom:1.05rem}
+.step-icon svg{width:18px;height:18px;color:var(--brand)}
+.step h3{font-size:1.02rem}
+.step p{margin-top:.5rem;color:var(--ink-2);font-size:.9rem}
+.step p code{font-family:var(--mono);font-size:.82em;background:var(--bg-soft);padding:.15em .4em;border-radius:5px;color:var(--brand-ink);white-space:nowrap}
+.install-note{display:flex;align-items:flex-start;gap:.6rem;margin-top:20px;color:var(--ink-3);font-size:.8rem}
+.install-note svg{width:15px;height:15px;flex:none;margin-top:2px;color:var(--ink-3)}
+
+/* ---------- download ---------- */
+.download-section{background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.download-card{
+  position:relative;display:grid;grid-template-columns:1.45fr .55fr;gap:clamp(28px,5vw,56px);align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:32px;padding:clamp(26px,4.5vw,48px);
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+.download-card::before{
+  content:"";position:absolute;width:420px;height:420px;right:-16%;top:-46%;border-radius:50%;
+  background:radial-gradient(circle,rgba(11,92,255,.12),transparent 65%);pointer-events:none;
+}
+.dl-info{position:relative;z-index:1}
+.dl-title-row{display:flex;align-items:center;flex-wrap:wrap;gap:.8rem;margin-top:.9rem}
+.dl-info h2{font-size:clamp(1.6rem,3vw,2.15rem);letter-spacing:-.02em}
+.version-pill{font-size:.72rem;font-weight:700;letter-spacing:.06em;padding:.3rem .65rem;border-radius:var(--pill);
+  background:var(--brand-soft);color:var(--brand-ink);border:1px solid transparent}
+.dl-info>p{margin-top:.7rem;color:var(--ink-2);font-size:.93rem;max-width:36em}
+.file-meta{display:flex;flex-wrap:wrap;gap:.6rem 0;margin-top:1.5rem;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel-2)}
+.file-meta div{flex:1 1 130px;padding:.75rem 1rem}
+.file-meta div + div{border-left:1px solid var(--line)}
+.file-meta dt{font-size:.67rem;letter-spacing:.12em;color:var(--ink-3);text-transform:uppercase}
+.file-meta dd{margin-top:3px;font-size:.88rem;font-weight:600;font-family:var(--mono);white-space:nowrap}
+.dl-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.85rem;margin-top:1.5rem}
+.dl-hint{font-size:.76rem;color:var(--ink-3)}
+.hash-box{margin-top:1.5rem;border-top:1px dashed var(--line);padding-top:1.1rem}
+.hash-label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.7rem;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;margin-bottom:.45rem}
+.hash-copy{font-size:.72rem;letter-spacing:0;text-transform:none;color:var(--brand);font-weight:600;padding:.2rem .5rem;border-radius:6px;border:1px solid var(--line);background:var(--panel-2)}
+.hash-copy:hover{border-color:var(--brand);background:var(--brand-soft)}
+.hash-box code{display:block;font-family:var(--mono);font-size:.72rem;line-height:1.7;color:var(--ink-3);word-break:break-all}
+.qr-card{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:.7rem;padding:22px 18px;
+  background:var(--panel-2);border:1px solid var(--line);border-radius:22px;text-align:center}
+.qr-frame{width:158px;height:158px;padding:9px;border-radius:14px;background:#fff;box-shadow:0 8px 24px -14px rgba(15,23,42,.35)}
+.qr-frame img{width:100%;height:100%}
+.qr-card strong{font-size:.88rem}
+.qr-card span{font-size:.72rem;color:var(--ink-3);line-height:1.6}
+.qr-copy{display:flex;flex-direction:column;gap:.18rem}
+
+/* ---------- faq ---------- */
+.faq-list{display:flex;flex-direction:column;gap:10px;max-width:920px;margin-inline:auto}
+.faq-item{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;transition:border-color .3s,box-shadow .3s}
+.faq-item[open]{border-color:var(--line-strong);box-shadow:var(--shadow-sm)}
+.faq-item summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:1.15rem 1.35rem;
+  font-size:.94rem;font-weight:600;color:var(--ink);
+}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{
+  content:"";width:9px;height:9px;flex:none;margin-left:auto;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);
+  transform:rotate(45deg);transition:transform .3s var(--ease),border-color .3s;margin-top:-3px;
+}
+.faq-item[open] summary::after{transform:rotate(-135deg);margin-top:3px;border-color:var(--brand)}
+.faq-body{padding:0 1.35rem 1.2rem;color:var(--ink-2);font-size:.9rem;line-height:1.85}
+.faq-body code{font-family:var(--mono);font-size:.84em;background:var(--bg-soft);padding:.12em .38em;border-radius:5px;color:var(--brand-ink)}
+
+/* ---------- footer ---------- */
+.site-footer{border-top:1px solid var(--line);padding:clamp(36px,5vw,52px) 0;background:var(--bg)}
+.footer-grid{display:flex;flex-wrap:wrap;align-items:center;gap:20px 40px}
+.foot-brand{display:flex;align-items:center;gap:12px}
+.foot-brand .brand-mark{width:34px;height:34px;border-radius:10px}
+.foot-brand b{font-size:.95rem;letter-spacing:.08em}
+.foot-brand span{display:block;font-size:.72rem;color:var(--ink-3);margin-top:2px}
+.foot-nav{display:flex;flex-wrap:wrap;gap:1.4rem;margin-left:auto;font-size:.82rem;color:var(--ink-2)}
+.foot-nav a:hover{color:var(--brand)}
+.foot-copy{width:100%;border-top:1px dashed var(--line);padding-top:1.2rem;margin-top:.4rem;color:var(--ink-3);font-size:.74rem;display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 1.5rem}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .hero-grid{grid-template-columns:1fr;gap:48px}
+  .hero-copy{max-width:640px}
+  .hero-visual{margin-top:8px;padding-block:12px}
+  .feature-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .download-card{grid-template-columns:1fr;text-align:left}
+  .qr-card{flex-direction:row;justify-content:flex-start;text-align:left;gap:18px;flex-wrap:wrap}
+  .qr-card .qr-frame{flex:none}
+}
+@media (max-width:760px){
+  .shell{width:calc(100% - 36px)}
+  .nav-links{display:none}
+  .nav-actions{margin-left:auto}
+  .nav-cta{padding:.6rem 1rem;font-size:.8rem}
+  .brand-text small{display:none}
+  .hero{padding-top:40px}
+  .hero h1{font-size:clamp(2.1rem,9vw,3rem)}
+  .lead{font-size:.95rem}
+  .hero-actions .btn{flex:1 1 100%}
+  .phone{width:min(292px,82vw);height:calc(min(292px,82vw) * 2.04)}
+  .float-card{display:none}
+  .spec-strip{grid-template-columns:repeat(2,1fr)}
+  .spec:last-child{grid-column:1/-1}
+  .file-meta dd{font-size:.8rem}
+  .qr-card{flex-direction:column;align-items:center;text-align:center;gap:.75rem}
+  .file-meta div + div{border-left:0;border-top:1px solid var(--line)}
+  .file-meta div{flex-basis:50%}
+  .dl-actions .btn{flex:1 1 100%}
+  .faq-item summary{padding:1rem 1.1rem;font-size:.88rem}
+  .faq-body{padding:0 1.1rem 1.05rem}
+  .foot-nav{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">跳到主要内容</a>
+
+<header class="site-header" id="siteHeader">
+  <div class="shell nav-wrap">
+    <a class="brand" href="/" aria-label="NEWCYR 官网">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round">
+          <path d="M4.5 9V4.5H9M15 4.5h4.5V9M4.5 15v4.5H9M15 19.5h4.5V15"/>
+          <path d="M8 9.5h8M8 12.5h6M8 15.5h4"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <b>拾墨</b>
+        <small>INKTEXT</small>
+      </span>
+    </a>
+
+    <nav class="nav-links" aria-label="页面导航">
+      <a href="#features">功能亮点</a>
+      <a href="#install">安装步骤</a>
+      <a href="#download">下载</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="icon-btn theme-btn" id="themeBtn" type="button" aria-label="切换深色模式">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/>
+        </svg>
+      </button>
+      <a class="btn btn-primary nav-cta" href="shimo-1.0.0.apk" download>下载 APK</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="shell hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Android 8.0+ · 完全离线识别</span>
+        <h1>把手写，<br><span class="grad-text">拾成文字。</span></h1>
+        <p class="lead">
+          拾墨是一款专注手写扫描的安卓应用。拍照或从相册选取纸笔手稿，<strong>在本机完成识别</strong>，
+          结果即刻成为可自由选中、编辑与复制的文字。
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="shimo-1.0.0.apk" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 16.5v2A2.5 2.5 0 0 0 6.5 21h11A2.5 2.5 0 0 0 20 18.5v-2"/>
+            </svg>
+            下载 APK · 45.7 MB
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#install">查看安装步骤</a>
+        </div>
+        <ul class="hero-meta">
+          <li>版本 v1.0.0</li>
+          <li>Android 8.0 及以上</li>
+          <li>零运行时权限</li>
+          <li>无广告 · 无账号</li>
+        </ul>
+        <p class="trust-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 3l7 3v5c0 4.6-3 8.2-7 10-4-1.8-7-5.4-7-10V6l7-3Z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+          安装包不含联网权限，识别全程不离开你的手机。
+        </p>
+      </div>
+
+      <div class="hero-visual" aria-label="应用界面预览">
+        <div class="phone-glow" aria-hidden="true"></div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="notch" aria-hidden="true"></div>
+            <div class="phone-status" aria-hidden="true">
+              <span>9:41</span>
+              <span class="status-icons"><i></i><i></i><i></i><b></b></span>
+            </div>
+            <div class="app">
+              <div class="app-head">
+                <span class="app-logo" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M4.5 9V4.5H9M15 4.5h4.5V9M4.5 15v4.5H9M15 19.5h4.5V15"/>
+                    <path d="M8 9.5h8M8 12.5h6M8 15.5h4"/>
+                  </svg>
+                </span>
+                <span class="app-title"><strong>拾墨</strong><span>手写扫描 · 即刻成文</span></span>
+                <span class="app-chip">本机离线</span>
+              </div>
+              <div class="app-preview">
+                <div class="paper">
+                  <p class="hand">春眠不觉晓<br>处处闻啼鸟<br>夜来风雨声</p>
+                </div>
+                <span class="preview-tag">手写稿</span>
+              </div>
+              <div class="app-actions">
+                <span class="mini-btn primary">拍照扫描</span>
+                <span class="mini-btn">相册导入</span>
+              </div>
+              <div class="app-result">
+                <div class="result-head"><strong>识别结果</strong><span>识别完成 · 共 20 字</span></div>
+                <p class="result-text">春眠不觉晓，处处闻啼鸟。<br>夜来风雨声，花落知多少。</p>
+                <div class="result-bar"><span>全选</span><span class="blue">复制</span><span>清空</span></div>
+              </div>
+              <div class="app-tip">
+                <i aria-hidden="true">i</i>
+                <span><b>小贴士</b>保持光线充足、镜头与纸面平行，识别会更准确。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card float-a"><span class="pulse-dot" aria-hidden="true"></span>离线识别 · 不上传</div>
+        <div class="float-card float-b">长按选择 · 一键复制</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section class="section features" id="features">
+    <div class="shell">
+      <div class="section-head reveal">
+        <span class="kicker">Features</span>
+        <h2>为手写稿而生的小工具</h2>
+        <p>没有多余的账号体系与社交功能，只把「拍下来、认出来、选出来、复制走」这件事做干净。</p>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 20l4.2-1 9.4-9.4a2.2 2.2 0 0 0-3.1-3.1L5 16l-1 4Z"/>
+              <path d="M13.5 7.5l3 3"/>
+            </svg>
+          </div>
+          <h3>手写、打印与中英混排</h3>
+          <p>内置中文与英文识别模型，对纸笔手写、打印文稿和中英混排内容都有良好适应性，笔记、便签、板书都能处理。</p>
+        </article>
+
+        <article class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3.5" y="5" width="17" height="14" rx="2.5"/>
+              <circle cx="9" cy="10" r="1.6"/>
+              <path d="M5.5 16.5l4-4 3 3 2.5-2.5 3.5 3.5"/>
+            </svg>
+          </div>
+          <h3>拍照或相册，两步开始</h3>
+          <p>直接调用系统相机拍摄，也可以从相册导入已有的照片。应用会自动校正方向、压缩尺寸，进入识别无需等待太久。</p>
+        </article>
+
+        <article class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 4H5a1 1 0 0 0-1 1v3M16 4h3a1 1 0 0 1 1 1v3M8 20H5a1 1 0 0 1-1-1v-3M16 20h3a1 1 0 0 0 1-1v-3"/>
+              <path d="M8 12h8"/>
+            </svg>
+          </div>
+          <h3>自由选择，精确复制</h3>
+          <p>识别结果进入可编辑文本区：长按选词、拖动光标精确选择，支持一键全选；复制按钮会优先复制你选中的片段。</p>
+        </article>
+
+        <article class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l7 3v5c0 4.6-3 8.2-7 10-4-1.8-7-5.4-7-10V6l7-3Z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <h3>完全离线，守口如瓶</h3>
+          <p>识别模型打包在安装包内，应用不申请网络权限。照片与文字只在本机短暂处理，不会上传到任何服务器。</p>
+        </article>
+      </div>
+
+      <div class="privacy-band reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="4" y="10" width="16" height="10" rx="3"/>
+          <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2.5"/>
+        </svg>
+        <p>「拾墨」的安装包中<b>没有 <code style="font-family:var(--mono);font-size:.92em">android.permission.INTERNET</code></b>。这不是一句宣传口号，而是可以在系统应用信息里直接验证的事实——它没有联网的能力。</p>
+      </div>
+
+      <div class="spec-strip reveal">
+        <dl class="spec"><dt>系统要求</dt><dd>Android 8.0+</dd></dl>
+        <dl class="spec"><dt>识别语言</dt><dd>中 / 英</dd></dl>
+        <dl class="spec"><dt>网络权限</dt><dd>0 项</dd></dl>
+        <dl class="spec"><dt>应用大小</dt><dd>45.7<small>MB</small></dd></dl>
+        <dl class="spec"><dt>广告与账号</dt><dd>无</dd></dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INSTALL ============ -->
+  <section class="section" id="install">
+    <div class="shell">
+      <div class="section-head reveal">
+        <span class="kicker">Install</span>
+        <h2>三步装好，即刻开写</h2>
+        <p>拾墨以 APK 形式直接分发，不经过应用商店，安装过程只需要一次系统授权。</p>
+      </div>
+
+      <div class="steps">
+        <article class="step reveal">
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 16.5v2A2.5 2.5 0 0 0 6.5 21h11A2.5 2.5 0 0 0 20 18.5v-2"/>
+            </svg>
+          </div>
+          <h3>下载安装包</h3>
+          <p>点击页面上的下载按钮，保存 <code>shimo-1.0.0.apk</code> 到手机。文件约 45.7 MB，建议在 Wi-Fi 环境下下载。</p>
+        </article>
+
+        <article class="step reveal">
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l7 3v5c0 4.6-3 8.2-7 10-4-1.8-7-5.4-7-10V6l7-3Z"/>
+              <path d="M8.5 12l2.5 2.5L16 9.5"/>
+            </svg>
+          </div>
+          <h3>允许安装未知应用</h3>
+          <p>首次安装时，系统会询问是否允许当前浏览器或文件管理器「安装未知应用」，按提示允许一次即可。安装完成后可随时收回该权限。</p>
+        </article>
+
+        <article class="step reveal">
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3.5" y="4" width="17" height="16" rx="3"/>
+              <path d="M7.5 9.5h9M7.5 13h6"/>
+            </svg>
+          </div>
+          <h3>拍照、识别、复制</h3>
+          <p>打开「拾墨」，拍照或导入手写稿，等待识别完成。在结果区长按选择需要的文字，点击「复制」，粘贴到笔记或聊天框即可。</p>
+        </article>
+      </div>
+
+      <p class="install-note reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v.5M12 11v5"/>
+        </svg>
+        如果浏览器提示「此类文件可能有害」，请选择继续下载。APK 已使用开发者证书签名，下载页提供的 SHA-256 可用于校验完整性。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ DOWNLOAD ============ -->
+  <section class="section download-section" id="download">
+    <div class="shell">
+      <div class="download-card reveal">
+        <div class="dl-info">
+          <span class="kicker">Download</span>
+          <div class="dl-title-row">
+            <h2>拾墨 · 手写识别</h2>
+            <span class="version-pill">v1.0.0</span>
+          </div>
+          <p>适用于 Android 8.0 及以上的手机与平板。安装包内含离线识别模型，首次使用无需下载额外资源。</p>
+
+          <dl class="file-meta">
+            <div><dt>文件名称</dt><dd>shimo-1.0.0.apk</dd></div>
+            <div><dt>文件大小</dt><dd>45.7 MB</dd></div>
+            <div><dt>更新日期</dt><dd>2026-11-03</dd></div>
+          </dl>
+
+          <div class="dl-actions">
+            <a class="btn btn-primary btn-lg" href="shimo-1.0.0.apk" download>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 16.5v2A2.5 2.5 0 0 0 6.5 21h11A2.5 2.5 0 0 0 20 18.5v-2"/>
+              </svg>
+              下载 APK
+            </a>
+            <span class="dl-hint">直链下载 · 无需登录</span>
+          </div>
+
+          <div class="hash-box">
+            <div class="hash-label">
+              <span>SHA-256 校验值</span>
+              <button class="hash-copy" id="copyHash" type="button">复制</button>
+            </div>
+            <code id="hashValue">ccbdaf9a28f3d7423f8e8af0334d5f638c7fc535d78f24032d9a9b143e9f35d4</code>
+          </div>
+        </div>
+
+        <aside class="qr-card">
+          <div class="qr-frame">
+            <img src="qr.svg" alt="扫描二维码下载拾墨 APK" width="158" height="158">
+          </div>
+          <div class="qr-copy">
+            <strong>手机扫码下载</strong>
+            <span>用手机相机扫描二维码<br>直接打开 APK 下载地址</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="section" id="faq">
+    <div class="shell">
+      <div class="section-head center reveal">
+        <span class="kicker">FAQ</span>
+        <h2>常见问题</h2>
+        <p>关于识别效果、隐私与安装的几点说明。</p>
+      </div>
+
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>真的完全离线吗？会不会偷偷上传照片？</summary>
+          <div class="faq-body">
+            是。安装包没有申请 <code>INTERNET</code> 权限，在 Android 系统层面就无法发起网络请求。识别模型随安装包一起下载，所有处理都在手机本地完成；照片、识别结果不会离开设备，也没有账号与云端同步。
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>支持哪些类型的字迹？识别准确率如何？</summary>
+          <div class="faq-body">
+            支持纸笔手写、打印体以及中英文混排。识别效果与书写清晰度、光线和拍摄角度关系较大：笔画分开、字距充足、纸面平整时效果最好。连笔严重、字迹过密或纸张褶皱时，建议重新拍摄或分区域拍摄。
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>为什么安装包有 45.7 MB？</summary>
+          <div class="faq-body">
+            拾墨把中文与英文识别模型直接打包进了 APK，因此体积比在线识别类应用大一些。换来的是首次打开即可使用、无需联网、也不产生任何云端流量。
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>识别结果可以修改吗？怎么复制选中部分？</summary>
+          <div class="faq-body">
+            结果区是一个可编辑的文本框，你可以直接修改错字。长按文字进入选择状态，拖动两端光标精确选取；点击「复制」时，如果存在选中片段则只复制该片段，否则复制全部内容。「全选」可一键选中整段结果。
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>为什么安装时提示「未知来源」或「可能有害」？</summary>
+          <div class="faq-body">
+            拾墨不通过应用商店分发，因此 Android 会提示安装未知来源应用，这是正常的系统保护机制。请在浏览器或文件管理器的设置中允许「安装未知应用」。部分浏览器还会对 APK 给出通用风险提示，确认文件来源为本站后选择继续下载即可，并可用页面上的 SHA-256 校验文件。
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>会持续更新吗？如何卸载？</summary>
+          <div class="faq-body">
+            后续版本会在本页更新下载文件与版本号，覆盖安装即可保留数据。卸载方式与普通应用一致：长按桌面图标或在「设置 → 应用 → 拾墨」中选择卸载，应用不会在后台驻留服务。
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>有 iPhone / iPad 版本吗？</summary>
+          <div class="faq-body">
+            目前仅提供 Android 版本，暂无 iOS 版本计划。Android 版本兼容 Android 8.0（API 26）及以上系统，支持 32 位与 64 位设备。
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="shell footer-grid">
+    <div class="foot-brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round">
+          <path d="M4.5 9V4.5H9M15 4.5h4.5V9M4.5 15v4.5H9M15 19.5h4.5V15"/>
+          <path d="M8 9.5h8M8 12.5h6M8 15.5h4"/>
+        </svg>
+      </span>
+      <div>
+        <b>拾墨 · INKTEXT</b>
+        <span>NEWCYR 出品 · 手写扫描识别</span>
+      </div>
+    </div>
+    <nav class="foot-nav" aria-label="页脚导航">
+      <a href="/">NEWCYR 官网</a>
+      <a href="#features">功能亮点</a>
+      <a href="#download">下载安装</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+    <div class="foot-copy">
+      <span>© 2026 NEWCYR · 本页仅提供 Android 版本下载</span>
+      <span>识别在本机完成 · 不收集任何个人数据</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  var STORAGE_KEY = 'shimo-theme';
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute('content', theme === 'dark' ? '#070B14' : '#F6F8FC');
+    }
+    if (themeBtn) {
+      themeBtn.setAttribute('aria-label', theme === 'dark' ? '切换亮色模式' : '切换深色模式');
+    }
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+  applyTheme(saved === 'dark' ? 'dark' : 'light');
+
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem(STORAGE_KEY, next); } catch (e) {}
+    });
+  }
+
+  var header = document.getElementById('siteHeader');
+  function onScroll() {
+    if (!header) return;
+    header.classList.toggle('scrolled', window.scrollY > 8);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var revealItems = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+  if (reduceMotion || !('IntersectionObserver' in window)) {
+    revealItems.forEach(function (el) { el.classList.add('in'); });
+  } else {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    revealItems.forEach(function (el) { observer.observe(el); });
+  }
+
+  var copyBtn = document.getElementById('copyHash');
+  var hashEl = document.getElementById('hashValue');
+  if (copyBtn && hashEl) {
+    copyBtn.addEventListener('click', function () {
+      var text = hashEl.textContent.trim();
+      function done() {
+        copyBtn.textContent = '已复制';
+        setTimeout(function () { copyBtn.textContent = '复制'; }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(fallback);
+      } else {
+        fallback();
+      }
+      function fallback() {
+        var area = document.createElement('textarea');
+        area.value = text;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(area);
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
