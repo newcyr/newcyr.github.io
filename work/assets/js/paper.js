@@ -201,7 +201,10 @@
 
     $('#glanceToggle').addEventListener('click', () => {
       glanceHidden = !glanceHidden;
-      renderGlance();
+      glance.classList.toggle('is-hidden', glanceHidden);
+      const btn = $('#glanceToggle');
+      btn.setAttribute('aria-expanded', String(!glanceHidden));
+      btn.innerHTML = `${glanceHidden ? ICONS.eye : ICONS.eyeOff}<span>${glanceHidden ? T('显示答案', 'Show answers') : T('隐藏答案', 'Hide answers')}</span>`;
     });
 
     glance.querySelectorAll('[data-glance]').forEach(item => {
