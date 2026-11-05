@@ -11,12 +11,14 @@
 
   let paper = null;
   let answersHidden = true;
+  let glanceHidden = false;
   let formRating = 5;
   let reviewNotice = '';
 
   const content = $('#paperContent');
   const state = $('#paperState');
   const toolbar = $('#qToolbar');
+  const glance = $('#answerGlance');
   const reviewBox = $('#reviewSection');
 
   const isEn = () => getLang() === 'en';
@@ -70,6 +72,7 @@
   function renderState(title, sub) {
     toolbar.innerHTML = '';
     content.innerHTML = '';
+    if (glance) { glance.innerHTML = ''; glance.className = ''; }
     if (reviewBox) reviewBox.innerHTML = '';
     state.innerHTML = `<div class="state"><div class="ico">${ICONS.doc}</div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(sub)}</p>
       <p style="margin-top:16px"><a class="btn btn-ghost btn-sm" href="index.html">${T('返回试卷列表', 'Back to papers')}</a></p></div>`;
@@ -148,6 +151,73 @@
         : `${ICONS.eyeOff}<span>${T('隐藏全部答案', 'Hide all answers')}</span>`;
       btn.setAttribute('aria-pressed', String(!hidden));
     }
+  }
+
+  /* ---------------- 答案速览 ---------------- */
+  function glanceItems() {
+    const items = [];
+    paper.sections.forEach(section => {
+      if (section.kind !== 'qa') return;
+      section.questions.forEach((q, i) => {
+        if (!q.answer && !q.answerImages.length) return;
+        items.push({ q, label: q.label || String(i + 1) });
+      });
+    });
+    return items;
+  }
+
+  function renderGlance() {
+    if (!glance) return;
+    const items = glanceItems();
+    if (!items.length) {
+      glance.innerHTML = '';
+      glance.className = '';
+      return;
+    }
+    glance.className = `answer-glance reveal${glanceHidden ? ' is-hidden' : ''}`;
+    glance.innerHTML = `
+      <div class="ag-head">
+        <span class="ag-mark">${ICONS.check}</span>
+        <div class="ag-title">
+          <small>Answer key</small>
+          <h2>${T('答案速览', 'Answers at a glance')}</h2>
+        </div>
+        <span class="ag-count">${items.length} ${T('道题', 'answered')}</span>
+        <button class="answer-toggle" id="glanceToggle" type="button" aria-expanded="${!glanceHidden}">
+          ${glanceHidden ? ICONS.eye : ICONS.eyeOff}<span>${glanceHidden ? T('显示答案', 'Show answers') : T('隐藏答案', 'Hide answers')}</span>
+        </button>
+      </div>
+      <div class="ag-grid">
+        ${items.map(({ q, label }) => {
+          const count = q.answerImages.length;
+          const text = q.answer || T('图片答案', 'Image answer');
+          return `<a class="ag-item" href="#q-${escAttr(q.id)}" data-glance="${escAttr(q.id)}" title="${escAttr(text)}">
+            <span class="ag-no">${escapeHtml(label)}</span>
+            <span class="ag-text">${escapeHtml(text)}</span>
+            ${count ? `<span class="ag-badge">${ICONS.image}${count}</span>` : ''}
+          </a>`;
+        }).join('')}
+      </div>`;
+
+    $('#glanceToggle').addEventListener('click', () => {
+      glanceHidden = !glanceHidden;
+      renderGlance();
+    });
+
+    glance.querySelectorAll('[data-glance]').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        const target = Array.from(content.querySelectorAll('[data-qid]'))
+          .find(el => el.dataset.qid === item.dataset.glance);
+        if (!target) return;
+        setCardAnswer(target, true);
+        content.querySelectorAll('.q-card.is-focus').forEach(el => el.classList.remove('is-focus'));
+        target.classList.add('is-focus');
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+
+    reveal(glance);
   }
 
   /* ---------------- 评价 ---------------- */
@@ -300,6 +370,7 @@
 
     answersHidden = paper.mode !== 'full';
     applyAllAnswers(answersHidden);
+    renderGlance();
 
     content.querySelectorAll('[data-toggle-answer]').forEach(btn => {
       btn.addEventListener('click', () => {

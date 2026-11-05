@@ -208,6 +208,35 @@ html[data-theme="dark"] .hero-bg::after{background-image:linear-gradient(rgba(25
 .q-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
   padding:14px 0 22px;border-bottom:1px solid var(--line)}
 .q-toolbar .label{font-size:.8rem;color:var(--ink-3)}
+.answer-glance + .q-toolbar{margin-top:18px}
+
+/* ---------------- answer glance ---------------- */
+.answer-glance{margin-top:clamp(20px,3vw,30px);border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--panel);box-shadow:var(--shadow-sm);overflow:hidden}
+.ag-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px clamp(16px,2.4vw,24px);
+  border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--brand-softer),transparent)}
+.ag-mark{width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;background:var(--brand);color:#fff}
+.ag-mark svg{width:17px;height:17px}
+.ag-title{display:flex;flex-direction:column;line-height:1.2}
+.ag-title small{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.ag-title h2{margin-top:3px;font-size:1.02rem;letter-spacing:-.02em}
+.ag-count{font-family:var(--mono);font-size:.7rem;color:var(--ink-3);padding:.2rem .55rem;
+  border:1px solid var(--line);border-radius:var(--pill);background:var(--bg-soft)}
+.ag-head .answer-toggle{margin-left:auto}
+.ag-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+  padding:16px clamp(16px,2.4vw,24px) clamp(18px,2.6vw,24px)}
+.ag-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;
+  background:var(--panel-2);transition:border-color .25s,background .25s,transform .3s var(--ease)}
+.ag-item:hover{border-color:var(--brand);background:var(--brand-softer);transform:translateY(-1px)}
+.ag-no{flex:none;min-width:24px;height:24px;margin-top:1px;padding:0 .3rem;border-radius:7px;display:grid;place-items:center;
+  background:var(--brand-soft);color:var(--brand);font-family:var(--mono);font-size:.74rem;font-weight:700}
+.ag-text{flex:1;min-width:0;font-size:.85rem;line-height:1.65;color:var(--ink-2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ag-badge{flex:none;display:inline-flex;align-items:center;gap:.22rem;margin-top:2px;padding:.12rem .4rem;
+  border-radius:var(--pill);background:var(--brand-soft);color:var(--brand);font-family:var(--mono);font-size:.64rem}
+.ag-badge svg{width:11px;height:11px}
+.answer-glance.is-hidden .ag-grid{display:none}
+.answer-glance.is-hidden .ag-head{border-bottom:0}
 .q-list{display:flex;flex-direction:column;gap:16px;margin-top:26px}
 .q-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);
   padding:clamp(20px,2.6vw,28px);transition:border-color .3s,box-shadow .3s,transform .4s var(--ease)}
@@ -441,10 +470,15 @@ html[data-theme="dark"] .r-tag.r-gold{color:#ffd27a;background:rgba(240,180,41,.
   .img-gallery{grid-template-columns:1fr}
 }
 
+@media (max-width:640px){
+  .ag-grid{grid-template-columns:1fr}
+  .ag-head .answer-toggle{margin-left:0}
+}
+
 /* ---------------- print ---------------- */
 @media print{
   .site-header,.site-footer,.q-toolbar,.q-nav,.q-actions,.crumbs,.page-hero,.lightbox,
-  .reviews-sec,.reviews-section,.answer-toggle{display:none!important}
+  .reviews-sec,.reviews-section,.answer-glance,.answer-toggle{display:none!important}
   body{background:#fff;color:#000}
   .q-card{break-inside:avoid;box-shadow:none;border-color:#ddd;margin-bottom:12px}
   .answer{background:#fff;border-color:#ddd}
