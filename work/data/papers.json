@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-05T12:05:46.981Z",
+  "updatedAt": "2026-11-05T12:09:43.685Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
@@ -7,113 +7,22 @@
   },
   "papers": [
     {
-      "id": "math-8-1",
-      "title": "八年级数学 · 全等三角形 单元测",
-      "subject": "数学",
-      "grade": "八年级",
-      "date": "2026-11-02",
-      "summary": "共 5 题，考查全等三角形的判定与性质，含一道图形题。",
-      "mode": "step",
-      "questions": [
-        {
-          "id": "q-1",
-          "label": "1",
-          "stem": "下列条件中，不能判定两个三角形全等的是（　　）\nA. SSS　B. SAS　C. ASA　D. SSA",
-          "images": [],
-          "answer": "D。SSA（边边角）不能保证三角形唯一，因此不能作为全等判定的依据。",
-          "answerImages": []
-        },
-        {
-          "id": "q-2",
-          "label": "2",
-          "stem": "若 △ABC ≌ △DEF，∠A = 52°，∠B = 68°，则 ∠F 的度数是（　　）\nA. 52°　B. 60°　C. 68°　D. 70°",
-          "images": [],
-          "answer": "B。\n∠C = 180° − 52° − 68° = 60°。\n全等三角形对应角相等，所以 ∠F = ∠C = 60°。",
-          "answerImages": []
-        },
-        {
-          "id": "q-3",
-          "label": "3",
-          "stem": "如图，AB = AD，∠BAC = ∠DAC。求证：△ABC ≌ △ADC。",
-          "images": [
-            "assets/samples/congruent.svg"
-          ],
-          "answer": "在 △ABC 与 △ADC 中：\nAB = AD（已知），\n∠BAC = ∠DAC（已知），\nAC = AC（公共边），\n所以 △ABC ≌ △ADC（SAS）。",
-          "answerImages": []
-        },
-        {
-          "id": "q-4",
-          "label": "4",
-          "stem": "已知等腰三角形的一边长为 5，另一边长为 10，则它的周长是多少？",
-          "images": [],
-          "answer": "25。\n若腰为 5，则 5 + 5 = 10，两边之和等于第三边，不能构成三角形；\n所以腰为 10、底为 5，周长 = 10 + 10 + 5 = 25。",
-          "answerImages": []
-        },
-        {
-          "id": "q-5",
-          "label": "5",
-          "stem": "如图，点 D 在 BC 上，AB = AC，AD 平分 ∠BAC。求证：BD = CD。",
-          "images": [],
-          "answer": "因为 AD 平分 ∠BAC，所以 ∠BAD = ∠CAD。\n又 AB = AC，AD = AD，\n所以 △ABD ≌ △ACD（SAS），\n故 BD = CD（全等三角形对应边相等）。",
-          "answerImages": []
-        }
-      ]
-    },
-    {
-      "id": "chinese-8-1",
-      "title": "八年级语文 · 古诗文默写专项",
+      "id": "p-mw3i5bw0rvn",
+      "title": "孙悟空人物档案",
       "subject": "语文",
-      "grade": "八年级",
-      "date": "2026-11-04",
-      "summary": "共 6 题，覆盖《望岳》《次北固山下》《三峡》等篇目，整卷答案直接展示。",
+      "grade": ".",
+      "date": "2026-11-05",
+      "summary": "",
       "mode": "full",
       "questions": [
         {
-          "id": "q-1",
+          "id": "q-mw3i5yfukct",
           "label": "1",
-          "stem": "默写：会当凌绝顶，__________。",
-          "images": [],
-          "answer": "一览众山小。（杜甫《望岳》）",
-          "answerImages": []
-        },
-        {
-          "id": "q-2",
-          "label": "2",
-          "stem": "默写：__________，江春入旧年。",
-          "images": [],
-          "answer": "海日生残夜。（王湾《次北固山下》）",
-          "answerImages": []
-        },
-        {
-          "id": "q-3",
-          "label": "3",
-          "stem": "默写：__________，不以疾也。",
-          "images": [],
-          "answer": "虽乘奔御风。（郦道元《三峡》）",
-          "answerImages": []
-        },
-        {
-          "id": "q-4",
-          "label": "4",
-          "stem": "《三峡》中描写夏水暴涨、水路受阻的句子是：__________，__________。",
-          "images": [],
-          "answer": "至于夏水襄陵，沿溯阻绝。",
-          "answerImages": []
-        },
-        {
-          "id": "q-5",
-          "label": "5",
-          "stem": "《望岳》中表现诗人不怕困难、敢于攀登绝顶的句子是：__________，__________。",
-          "images": [],
-          "answer": "会当凌绝顶，一览众山小。",
-          "answerImages": []
-        },
-        {
-          "id": "q-6",
-          "label": "6",
-          "stem": "简答：说说“素湍绿潭，回清倒影”一句的表达效果。",
-          "images": [],
-          "answer": "以“素”“绿”写色彩，以“湍”“潭”写水势，动静结合、俯仰相衬，简洁生动地写出三峡春冬之水清澈秀丽的特点。",
+          "stem": "",
+          "images": [
+            "assets/uploads/p-mw3i5bw0rvn/mw3i6byu-1n5nu.jpg"
+          ],
+          "answer": "",
           "answerImages": []
         }
       ]
