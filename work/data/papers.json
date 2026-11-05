@@ -1,31 +1,9 @@
 {
-  "updatedAt": "2026-11-05T12:16:22.133Z",
+  "updatedAt": "2026-11-05T12:18:48.754Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
     "notice": ""
   },
-  "papers": [
-    {
-      "id": "p-mw3iag6xv0f",
-      "title": "西游记人物档案",
-      "subject": "语文",
-      "grade": "cyrcyrgo@outlook.com",
-      "date": "2026-11-05",
-      "summary": "特别感谢班级群康梓珊提供答案",
-      "mode": "full",
-      "questions": [
-        {
-          "id": "q-mw3ic0m37e9",
-          "label": "。",
-          "stem": "",
-          "images": [
-            "assets/uploads/p-mw3iag6xv0f/mw3iexwc-gjdhe.jpg"
-          ],
-          "answer": "",
-          "answerImages": []
-        }
-      ]
-    }
-  ]
+  "papers": []
 }
