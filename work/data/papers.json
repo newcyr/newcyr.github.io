@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-05T11:20:00.000Z",
+  "updatedAt": "2026-11-05T12:05:46.981Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
@@ -35,7 +35,9 @@
           "id": "q-3",
           "label": "3",
           "stem": "如图，AB = AD，∠BAC = ∠DAC。求证：△ABC ≌ △ADC。",
-          "images": ["assets/samples/congruent.svg"],
+          "images": [
+            "assets/samples/congruent.svg"
+          ],
           "answer": "在 △ABC 与 △ADC 中：\nAB = AD（已知），\n∠BAC = ∠DAC（已知），\nAC = AC（公共边），\n所以 △ABC ≌ △ADC（SAS）。",
           "answerImages": []
         },
