@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" role="img" aria-label="全等三角形判定方法速记">
+  <rect width="900" height="560" fill="#F6F8FC" rx="22"/>
+  <text x="48" y="70" fill="#101828" font-family="-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif" font-size="30" font-weight="700">全等三角形判定 · 速记卡</text>
+  <text x="48" y="104" fill="#5b6b82" font-family="-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif" font-size="17">证明前先找「已知」与「公共边 / 公共角」，再对照下面五种判定。</text>
+
+  <g font-family="-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="48" y="140" width="392" height="112" rx="16" fill="#FFFFFF" stroke="#DBE3EF"/>
+    <text x="76" y="184" fill="#0b5cff" font-size="24" font-weight="700">SSS</text>
+    <text x="152" y="184" fill="#101828" font-size="19" font-weight="600">三边对应相等</text>
+    <text x="76" y="220" fill="#5b6b82" font-size="16">三条边都能找到相等关系时使用。</text>
+
+    <rect x="460" y="140" width="392" height="112" rx="16" fill="#FFFFFF" stroke="#DBE3EF"/>
+    <text x="488" y="184" fill="#0b5cff" font-size="24" font-weight="700">SAS</text>
+    <text x="564" y="184" fill="#101828" font-size="19" font-weight="600">两边及夹角</text>
+    <text x="488" y="220" fill="#5b6b82" font-size="16">角必须是两边的夹角，不能是 SSA。</text>
+
+    <rect x="48" y="272" width="392" height="112" rx="16" fill="#FFFFFF" stroke="#DBE3EF"/>
+    <text x="76" y="316" fill="#0b5cff" font-size="24" font-weight="700">ASA</text>
+    <text x="152" y="316" fill="#101828" font-size="19" font-weight="600">两角及夹边</text>
+    <text x="76" y="352" fill="#5b6b82" font-size="16">先由三角形内角和求出第三个角。</text>
+
+    <rect x="460" y="272" width="392" height="112" rx="16" fill="#FFFFFF" stroke="#DBE3EF"/>
+    <text x="488" y="316" fill="#0b5cff" font-size="24" font-weight="700">AAS</text>
+    <text x="564" y="316" fill="#101828" font-size="19" font-weight="600">两角及一边</text>
+    <text x="488" y="352" fill="#5b6b82" font-size="16">任意一组对应边都可以，不要求夹边。</text>
+
+    <rect x="48" y="404" width="804" height="108" rx="16" fill="#EBF1FF" stroke="#C9D9FF"/>
+    <text x="76" y="448" fill="#0b5cff" font-size="24" font-weight="700">HL</text>
+    <text x="128" y="448" fill="#101828" font-size="19" font-weight="600">直角三角形：斜边 + 一条直角边</text>
+    <text x="76" y="484" fill="#44567a" font-size="16">只适用于直角三角形；普通三角形不要使用 HL。</text>
+  </g>
+</svg>

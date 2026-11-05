@@ -54,8 +54,8 @@
     <div class="hero-bg" aria-hidden="true"></div>
     <div class="shell">
       <span class="eyebrow"><i></i><span data-zh="作业答案 · 逐题解析" data-en="Homework answers · step by step">作业答案 · 逐题解析</span></span>
-      <h1 data-zh="选择一份试卷，<br><em>直接看题目与答案</em>。" data-en="Pick a paper,<br><em>see questions and answers</em>.">选择一份试卷，<br><em>直接看题目与答案</em>。</h1>
-      <p class="hero-sub" id="heroSub" data-zh="题目支持文字与图片。部分试卷可按题查看答案，部分试卷直接展示整卷参考答案。" data-en="Questions can be text or images. Some papers reveal answers question by question, others show the full answered paper.">题目支持文字与图片。部分试卷可按题查看答案，部分试卷直接展示整卷参考答案。</p>
+      <h1 data-zh="选择一份试卷，<br><em>看题目、查答案</em>。" data-en="Pick a paper,<br><em>read questions and answers</em>.">选择一份试卷，<br><em>看题目、查答案</em>。</h1>
+      <p class="hero-sub" id="heroSub" data-zh="题目支持文字与图片；答案可逐题隐藏或展开。支持一题一答与纯图片栏目，也欢迎留下你的评价。" data-en="Questions can be text or images. Answers can be hidden or revealed per question, with Q&A and image-only sections.">题目支持文字与图片；答案可逐题隐藏或展开。支持一题一答与纯图片栏目，也欢迎留下你的评价。</p>
 
       <div class="toolbar">
         <label class="search">
@@ -73,7 +73,7 @@
       <div class="stat"><b id="statPapers">0</b><span data-zh="试卷" data-en="Papers">试卷</span></div>
       <div class="stat"><b id="statQuestions">0</b><span data-zh="题目" data-en="Questions">题目</span></div>
       <div class="stat"><b id="statSubjects">0</b><span data-zh="学科" data-en="Subjects">学科</span></div>
-      <div class="stat"><b id="statUpdated">—</b><span data-zh="最近更新" data-en="Updated">最近更新</span></div>
+      <div class="stat"><b id="statRating">—</b><span id="statReviews" data-zh="用户评价" data-en="Reviews">用户评价</span></div>
     </div>
   </section>
 
@@ -93,6 +93,21 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.8v.4"/></svg>
         <span id="siteNoticeText"></span>
       </div>
+    </div>
+  </section>
+
+  <!-- ======================= REVIEWS ======================= -->
+  <section class="section reviews-section" id="reviews">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <span class="kicker">Reviews</span>
+          <h2 class="sec-title" data-zh="用户<em>评价</em>" data-en="User <em>reviews</em>">用户<em>评价</em></h2>
+          <p class="sec-sub" data-zh="精选评价公开展示；你在试卷页留下的评价保存在本设备。" data-en="Featured reviews are public; reviews you leave on a paper stay on this device.">精选评价公开展示；你在试卷页留下的评价保存在本设备。</p>
+        </div>
+        <div id="reviewSummary"></div>
+      </div>
+      <div class="review-list home-list" id="reviewList"></div>
     </div>
   </section>
 </main>

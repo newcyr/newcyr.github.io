@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" width="600" height="420" role="img" aria-label="等腰三角形与角平分线示意图">
+  <rect width="600" height="420" fill="#F6F8FC" rx="18"/>
+  <g fill="none" stroke="#0b5cff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300 58 L96 330 L504 330 Z"/>
+    <path d="M300 58 L300 330"/>
+    <path d="M284 88 A36 36 0 0 1 316 88" stroke-width="2.4"/>
+  </g>
+  <g fill="none" stroke="#0b5cff" stroke-width="2.4" stroke-linecap="round" opacity=".75">
+    <path d="M168 218 L192 208"/>
+    <path d="M172 232 L196 222"/>
+    <path d="M408 218 L432 208"/>
+    <path d="M404 232 L428 222"/>
+  </g>
+  <g fill="#0b5cff" font-family="-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif" font-size="22" font-weight="700">
+    <text x="300" y="44" text-anchor="middle">A</text>
+    <text x="78" y="352" text-anchor="middle">B</text>
+    <text x="522" y="352" text-anchor="middle">C</text>
+    <text x="300" y="366" text-anchor="middle">D</text>
+  </g>
+  <g fill="#5b6b82" font-family="-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif" font-size="15">
+    <text x="300" y="396" text-anchor="middle">AB = AC，AD 平分 ∠BAC，求证 BD = CD</text>
+  </g>
+</svg>

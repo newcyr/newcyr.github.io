@@ -1,4 +1,4 @@
-/* NEWCYR · WORKSPACE — 后台：解密 Token / 编辑试卷 / 发布到 GitHub */
+/* NEWCYR · WORKSPACE — 后台：解密 Token / 栏目编辑 / 多图上传 / 立即发布 */
 (() => {
   const { $, $$, ICONS, escapeHtml, escAttr, formatDate } = window.Work;
   const CFG = window.WORK_ADMIN_CONFIG || {};
@@ -20,7 +20,8 @@
     sha: null,
     selected: { kind: 'site' },
     dirty: false,
-    busy: false
+    busy: false,
+    previews: {}
   };
 
   const loginView = $('#loginView');
@@ -63,7 +64,7 @@
     el.classList.toggle('err', isError);
     el.classList.add('show');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => el.classList.remove('show'), 3600);
+    toast._timer = setTimeout(() => el.classList.remove('show'), 3800);
   }
 
   function setSync(text, kind = '') {
@@ -173,22 +174,55 @@
     });
   }
 
+  async function deletePath(path, message) {
+    const file = await getContents(path);
+    return gh(`/repos/${REPO}/contents/${path}`, {
+      method: 'DELETE',
+      body: { message, sha: file.sha, branch: BRANCH }
+    });
+  }
+
   /* ---------------- 数据 ---------------- */
+  function normalizeQuestion(q, j) {
+    const item = Object.assign({}, q || {});
+    if (!item.id) item.id = uid('q');
+    ['label', 'stem', 'answer'].forEach(k => { if (item[k] == null) item[k] = ''; });
+    item.images = Array.isArray(item.images) ? item.images.filter(Boolean) : [];
+    item.answerImages = Array.isArray(item.answerImages) ? item.answerImages.filter(Boolean) : [];
+    return item;
+  }
+
   function normalizeData(raw) {
     const data = Object.assign({ updatedAt: '', site: {}, papers: [] }, raw || {});
     data.site = Object.assign({ title: '作业答案中心', subtitle: '', notice: '' }, data.site || {});
-    data.papers = Array.isArray(data.papers) ? data.papers : [];
+    data.papers = Array.isArray(data.papers) ? data.papers.filter(Boolean) : [];
     data.papers.forEach(p => {
       if (!p.id) p.id = uid('p');
       p.mode = p.mode === 'full' ? 'full' : 'step';
-      ['title', 'subject', 'grade', 'date', 'summary'].forEach(k => { if (p[k] == null) p[k] = ''; });
-      p.questions = Array.isArray(p.questions) ? p.questions : [];
-      p.questions.forEach(q => {
-        if (!q.id) q.id = uid('q');
-        ['label', 'stem', 'answer'].forEach(k => { if (q[k] == null) q[k] = ''; });
-        q.images = Array.isArray(q.images) ? q.images.filter(Boolean) : [];
-        q.answerImages = Array.isArray(q.answerImages) ? q.answerImages.filter(Boolean) : [];
+      ['title', 'subject', 'grade', 'date', 'summary', 'cover'].forEach(k => { if (p[k] == null) p[k] = ''; });
+
+      let sections = Array.isArray(p.sections) ? p.sections.filter(Boolean) : [];
+      if (!sections.length && Array.isArray(p.questions) && p.questions.length) {
+        sections = [{ id: `${p.id}-s1`, title: '题目与答案', kind: 'qa', questions: p.questions }];
+      }
+      p.sections = sections.map(s => {
+        if (!s.id) s.id = uid('s');
+        s.kind = s.kind === 'images' ? 'images' : 'qa';
+        s.title = s.title || (s.kind === 'images' ? '图片资料' : '题目与答案');
+        s.note = s.note || '';
+        s.questions = Array.isArray(s.questions) ? s.questions.map(normalizeQuestion) : [];
+        s.images = Array.isArray(s.images) ? s.images.filter(Boolean) : [];
+        return s;
       });
+      delete p.questions;
+
+      p.reviews = Array.isArray(p.reviews) ? p.reviews.map((r, ri) => ({
+        id: r.id || `r-${ri + 1}`,
+        name: r.name || '',
+        rating: Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5))),
+        text: r.text || '',
+        date: r.date || ''
+      })) : [];
     });
     return data;
   }
@@ -220,51 +254,75 @@
     return state.data.papers.find(p => p.id === state.selected.id) || null;
   }
 
+  function currentSection(si) {
+    const p = currentPaper();
+    return p ? p.sections[si] : null;
+  }
+
+  function paperStats(p) {
+    const stats = { sections: p.sections.length, questions: 0, images: 0 };
+    p.sections.forEach(s => {
+      if (s.kind === 'qa') stats.questions += s.questions.length;
+      else stats.images += s.images.length;
+    });
+    return stats;
+  }
+
   /* ---------------- 图片 ---------------- */
-  const readFile = file => new Promise((resolve, reject) => {
+  const readDataUrl = file => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error('图片读取失败'));
+    reader.onerror = () => reject(new Error('图片读取失败，请重试'));
     reader.readAsDataURL(file);
   });
 
   const loadImg = src => new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('图片解析失败'));
+    img.onerror = () => reject(new Error('图片解析失败，请换一张 JPG/PNG 图片'));
     img.src = src;
   });
 
-  async function prepareImage(file) {
-    if (!file.type.startsWith('image/')) throw new Error('只支持图片文件');
-    if (file.size > 8 * 1024 * 1024) throw new Error('单张图片不能超过 8MB');
-    const dataUrl = await readFile(file);
+  const EXT_TYPE = {
+    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
+    gif: 'image/gif', svg: 'image/svg+xml', bmp: 'image/bmp'
+  };
 
-    if (file.type === 'image/svg+xml') {
-      if (file.size > 2 * 1024 * 1024) throw new Error('SVG 图片不能超过 2MB');
-      return { dataUrl, ext: 'svg' };
-    }
-    if (file.type === 'image/gif') {
-      if (file.size > 2 * 1024 * 1024) throw new Error('GIF 图片不能超过 2MB');
-      return { dataUrl, ext: 'gif' };
+  function detectType(file) {
+    if (file.type && file.type.startsWith('image/')) return file.type;
+    const ext = String(file.name || '').split('.').pop().toLowerCase();
+    return EXT_TYPE[ext] || '';
+  }
+
+  async function prepareImage(file) {
+    const type = detectType(file);
+    if (!type) throw new Error(`「${file.name}」不是受支持的图片格式，请使用 JPG / PNG / WebP`);
+    if (file.size > 12 * 1024 * 1024) throw new Error(`「${file.name}」超过 12MB，请压缩后再上传`);
+    const dataUrl = await readDataUrl(file);
+
+    if (type === 'image/svg+xml' || type === 'image/gif') {
+      if (file.size > 2 * 1024 * 1024) throw new Error('GIF / SVG 图片不能超过 2MB');
+      return { dataUrl, ext: type === 'image/gif' ? 'gif' : 'svg' };
     }
 
     const img = await loadImg(dataUrl);
-    const needResize = img.naturalWidth > 1600 || file.size > 1.4 * 1024 * 1024;
-    if (!needResize) {
-      const ext = (file.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
-      return { dataUrl, ext };
+    let scale = Math.min(1, 1600 / img.naturalWidth, 1600 / img.naturalHeight);
+    let quality = 0.86;
+    let out = '';
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      out = canvas.toDataURL('image/jpeg', quality);
+      if (out.length <= 2.4 * 1024 * 1024) break;
+      scale *= 0.82;
+      quality = Math.max(0.6, quality - 0.1);
     }
-    const scale = Math.min(1, 1600 / img.naturalWidth);
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(img.naturalWidth * scale);
-    canvas.height = Math.round(img.naturalHeight * scale);
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const out = canvas.toDataURL('image/jpeg', 0.86);
-    if (out.length > 6.5 * 1024 * 1024) throw new Error('压缩后图片仍然过大，请换一张');
+    if (out.length > 2.8 * 1024 * 1024) throw new Error('图片压缩后仍然过大，请换一张更小的图片');
     return { dataUrl: out, ext: 'jpg' };
   }
 
@@ -273,35 +331,73 @@
     const name = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}.${prep.ext}`;
     const repoPath = `work/assets/uploads/${paper.id}/${name}`;
     const base64 = prep.dataUrl.split(',')[1] || '';
-    await putBinary(repoPath, base64, `chore(work): 上传题目图片 ${name}`);
-    return `assets/uploads/${paper.id}/${name}`;
+    if (!base64) throw new Error('图片内容为空，无法上传');
+    await putBinary(repoPath, base64, `chore(work): 上传图片 ${name}`);
+    return { path: `assets/uploads/${paper.id}/${name}`, preview: prep.dataUrl };
   }
 
   function adminImgSrc(path) {
     if (!path) return '';
     if (/^(https?:|data:|blob:)/.test(path)) return path;
+    const local = state.previews[path];
+    if (local) return local;
     return `../${path.replace(/^\.\//, '')}`;
+  }
+
+  async function removeRepoImage(path) {
+    if (!path || /^(https?:|data:|blob:)/.test(path)) return;
+    const used = state.data.papers.some(p => p.sections.some(s =>
+      (s.images || []).includes(path) ||
+      (s.questions || []).some(q => (q.images || []).includes(path) || (q.answerImages || []).includes(path))
+    ));
+    if (used) return;
+    try {
+      await deletePath(`work/${path}`, 'chore(work): 删除不再使用的图片');
+      delete state.previews[path];
+    } catch (err) {
+      /* 文件可能已不存在或被 Pages 缓存，忽略即可 */
+    }
+  }
+
+  async function removePaperImages(paperId) {
+    try {
+      const list = await gh(`/repos/${REPO}/contents/work/assets/uploads/${paperId}?ref=${encodeURIComponent(BRANCH)}`);
+      if (!Array.isArray(list)) return;
+      for (const file of list) {
+        if (file.type !== 'file') continue;
+        await gh(`/repos/${REPO}/contents/${file.path}`, {
+          method: 'DELETE',
+          body: { message: 'chore(work): 清理已删除试卷的图片', sha: file.sha, branch: BRANCH }
+        });
+      }
+    } catch (err) {
+      /* 目录不存在或已清理，忽略 */
+    }
   }
 
   /* ---------------- 侧栏 ---------------- */
   function renderSidebar() {
-    const items = [];
-    items.push(`
+    const items = [`
       <li>
         <button class="side-item site ${state.selected.kind === 'site' ? 'is-active' : ''}" type="button" data-select="site">
           <span class="t">站点信息</span>
           <span class="m">标题 · 副标题 · 公告</span>
         </button>
-      </li>`);
-    state.data.papers.forEach((p, i) => {
+      </li>`];
+
+    state.data.papers.forEach(p => {
+      const stats = paperStats(p);
+      const active = state.selected.kind === 'paper' && state.selected.id === p.id;
       items.push(`
-        <li>
-          <button class="side-item ${state.selected.kind === 'paper' && state.selected.id === p.id ? 'is-active' : ''}" type="button" data-select="${escapeHtml(p.id)}">
+        <li class="side-row">
+          <button class="side-item ${active ? 'is-active' : ''}" type="button" data-select="${escAttr(p.id)}">
             <span class="t">${escapeHtml(p.title || '未命名试卷')}</span>
-            <span class="m"><span>${String(i + 1).padStart(2, '0')} · ${p.questions.length} 题</span><span>${escapeHtml(p.subject || '未分类')}</span></span>
+            <span class="m"><span>${stats.sections} 栏目 · ${stats.questions} 题</span><span>${escapeHtml(p.subject || '未分类')}</span></span>
           </button>
+          <button class="side-del" type="button" data-del-paper="${escAttr(p.id)}" title="删除并立即发布" aria-label="删除《${escAttr(p.title || '未命名试卷')}》">${ICONS.x}</button>
         </li>`);
     });
+
     sideList.innerHTML = items.join('');
     sideList.querySelectorAll('[data-select]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -312,7 +408,10 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
-    $('#sideFoot').textContent = `共 ${state.data.papers.length} 份试卷 · 修改后记得点击「保存并发布」`;
+    sideList.querySelectorAll('[data-del-paper]').forEach(btn => {
+      btn.addEventListener('click', () => removePaper(btn.dataset.delPaper));
+    });
+    $('#sideFoot').textContent = `共 ${state.data.papers.length} 份试卷 · 删除操作会立即发布到线上`;
   }
 
   /* ---------------- 编辑面板 ---------------- */
@@ -325,7 +424,9 @@
             <h2>站点信息</h2>
             <p>显示在试卷中心首页的标题与说明。</p>
           </div>
-          <a class="preview-link" href="../index.html" target="_blank" rel="noopener">${ICONS.eye}预览首页</a>
+          <div class="panel-hd-right">
+            <a class="preview-link" href="../index.html" target="_blank" rel="noopener">${ICONS.eye}预览首页</a>
+          </div>
         </div>
         <div class="panel-body">
           <div class="form-grid">
@@ -351,68 +452,160 @@
       </div>`;
   }
 
-  function questionEditorHtml(q, i) {
-    const thumbs = (list, kind) => (list || []).map(src => `
+  function uploaderHtml(list, attrs, labelText) {
+    const thumbs = (list || []).map(src => `
       <div class="thumb">
-        <img src="${escAttr(adminImgSrc(src))}" alt="">
-        <button type="button" data-action="del-image" data-qi="${i}" data-kind="${kind}" data-src="${escAttr(src)}" aria-label="移除图片">${ICONS.x}</button>
+        <img src="${escAttr(adminImgSrc(src))}" alt="" loading="lazy">
+        ${state.previews[src] ? '<span class="local-tag">新</span>' : ''}
+        <button class="del" type="button" data-action="del-image" data-src="${escAttr(src)}" ${attrs} title="删除这张图片" aria-label="删除图片">${ICONS.x}</button>
       </div>`).join('');
-
-    const upload = (kind, labelText, list) => `
-      <div class="field">
-        <span>${labelText}</span>
-        <div class="img-line">
-          <div class="thumbs">${thumbs(list, kind)}</div>
-          <label class="upload-btn">
-            ＋ 上传图片
-            <input class="file-input" type="file" accept="image/*" multiple data-upload="${kind}" data-qi="${i}">
+    return `
+      <div class="uploader">
+        <div class="thumbs">${thumbs || '<span class="thumbs-empty">还没有图片，可一次上传多张</span>'}</div>
+        <div class="upload-zone" data-dropzone ${attrs}>
+          <label class="upload-btn">${ICONS.image}${labelText}
+            <input class="file-input" type="file" accept="image/*" multiple data-upload ${attrs}>
           </label>
+          <span class="drop-tip">或拖拽图片到这里</span>
         </div>
       </div>`;
+  }
 
+  function questionEditorHtml(q, si, qi) {
+    const attrs = `data-si="${si}" data-qi="${qi}"`;
     return `
       <div class="q-editor">
         <div class="q-editor-hd">
           <div class="no">
-            <span class="badge">${escapeHtml(q.label || i + 1)}</span>
+            <span class="badge">${escapeHtml(q.label || qi + 1)}</span>
             <span class="kind">${q.images.length ? '图片题' : '文字题'}</span>
           </div>
           <div class="ops">
-            <button class="mini-btn" type="button" data-action="move-up" data-qi="${i}" ${i === 0 ? 'disabled' : ''}>↑ 上移</button>
-            <button class="mini-btn" type="button" data-action="move-down" data-qi="${i}">↓ 下移</button>
-            <button class="mini-btn danger" type="button" data-action="del-question" data-qi="${i}">删除</button>
+            <button class="mini-btn" type="button" data-action="move-q-up" data-si="${si}" data-qi="${qi}" ${qi === 0 ? 'disabled' : ''}>↑ 上移</button>
+            <button class="mini-btn" type="button" data-action="move-q-down" data-si="${si}" data-qi="${qi}">↓ 下移</button>
+            <button class="mini-btn danger" type="button" data-action="del-question" data-si="${si}" data-qi="${qi}">删除</button>
           </div>
         </div>
         <div class="q-editor-body">
           <div class="q-row">
             <label class="field">
               <span>题号</span>
-              <input data-qi="${i}" data-qf="label" value="${escAttr(q.label)}" placeholder="1">
+              <input data-qf="label" ${attrs} value="${escAttr(q.label)}" placeholder="1">
             </label>
             <label class="field">
               <span>题干文字</span>
-              <textarea data-qi="${i}" data-qf="stem" rows="4" placeholder="支持换行；纯文字题目直接填在这里">${escAttr(q.stem)}</textarea>
+              <textarea data-qf="stem" ${attrs} rows="3" placeholder="支持换行；纯图片题可以留空">${escAttr(q.stem)}</textarea>
             </label>
           </div>
-          ${upload('stem', '题干图片（可选，可多张）', q.images)}
+          <div class="field">
+            <span>题干图片（可多张）</span>
+            ${uploaderHtml(q.images, `data-up="stem" ${attrs}`, '上传题干图片')}
+          </div>
           <label class="field">
             <span>答案文字</span>
-            <textarea data-qi="${i}" data-qf="answer" rows="4" placeholder="参考答案、解析步骤等">${escAttr(q.answer)}</textarea>
+            <textarea data-qf="answer" ${attrs} rows="3" placeholder="参考答案、解析步骤等">${escAttr(q.answer)}</textarea>
           </label>
-          ${upload('answer', '答案图片（可选，可多张）', q.answerImages)}
+          <div class="field">
+            <span>答案图片（可多张）</span>
+            ${uploaderHtml(q.answerImages, `data-up="answer" ${attrs}`, '上传答案图片')}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function sectionEditorHtml(s, si, total) {
+    const isImages = s.kind === 'images';
+    return `
+      <div class="sec-editor">
+        <div class="sec-editor-hd">
+          <div class="sec-no">
+            <span class="n">栏目 ${String(si + 1).padStart(2, '0')}</span>
+            <span class="kind-badge ${s.kind}">${isImages ? '纯图片' : '一题一答'}</span>
+          </div>
+          <div class="ops">
+            <button class="mini-btn" type="button" data-action="move-sec-up" data-si="${si}" ${si === 0 ? 'disabled' : ''}>↑ 上移</button>
+            <button class="mini-btn" type="button" data-action="move-sec-down" data-si="${si}" ${si === total - 1 ? 'disabled' : ''}>↓ 下移</button>
+            <button class="mini-btn danger" type="button" data-action="del-section" data-si="${si}">删除栏目</button>
+          </div>
+        </div>
+        <div class="sec-editor-body">
+          <div class="sec-row">
+            <label class="field">
+              <span>栏目名称</span>
+              <input data-secf="title" data-si="${si}" value="${escAttr(s.title)}" placeholder="${isImages ? '例如：图形与辅助线' : '例如：选择题与证明题'}">
+            </label>
+            <div class="kind-switch">
+              <span>栏目类型</span>
+              <div class="seg" role="group" aria-label="栏目类型">
+                <button type="button" class="${isImages ? '' : 'is-active'}" data-action="set-kind" data-si="${si}" data-kind="qa">一题一答</button>
+                <button type="button" class="${isImages ? 'is-active' : ''}" data-action="set-kind" data-si="${si}" data-kind="images">纯图片</button>
+              </div>
+            </div>
+          </div>
+          ${isImages ? `
+            <label class="field">
+              <span>栏目说明（可选）</span>
+              <input data-secf="note" data-si="${si}" value="${escAttr(s.note)}" placeholder="例如：点击图片可放大查看">
+            </label>
+            <div class="field">
+              <span>栏目图片（可多张）</span>
+              ${uploaderHtml(s.images, `data-up="section" data-si="${si}"`, '上传图片（可多选）')}
+            </div>` : `
+            <div class="sub-head">
+              <div>
+                <h4>题目（${s.questions.length}）</h4>
+                <p>每道题都有独立的题干、题目图片、答案文字与答案图片。</p>
+              </div>
+              <div class="sub-actions">
+                <button class="btn-xs" type="button" data-action="add-question" data-si="${si}">＋ 添加题目</button>
+              </div>
+            </div>
+            ${s.questions.length ? s.questions.map((q, qi) => questionEditorHtml(q, si, qi)).join('') : '<div class="empty-q">这个栏目还没有题目，点击「添加题目」开始。</div>'}`}
+        </div>
+      </div>`;
+  }
+
+  function reviewsEditorHtml(p) {
+    return `
+      <div class="panel-sub">
+        <div class="sub-head">
+          <div>
+            <h3>精选评价</h3>
+            <p>精选评价会公开显示给所有访客；普通访客的评价只保存在其本机。</p>
+          </div>
+          <div class="sub-actions">
+            <button class="btn-xs" type="button" data-action="add-review">＋ 添加精选评价</button>
+          </div>
+        </div>
+        <div class="review-editor-list">
+          ${p.reviews.length ? p.reviews.map((r, ri) => `
+            <div class="review-row">
+              <div class="review-row-top">
+                <input data-rfield="name" data-ri="${ri}" value="${escAttr(r.name)}" placeholder="昵称（如：匿名同学）" maxlength="20">
+                <select data-rfield="rating" data-ri="${ri}">
+                  ${[5, 4, 3, 2, 1].map(n => `<option value="${n}" ${Number(r.rating) === n ? 'selected' : ''}>${n} 星</option>`).join('')}
+                </select>
+                <input type="date" data-rfield="date" data-ri="${ri}" value="${escAttr(r.date || '')}">
+                <button class="mini-btn danger" type="button" data-action="del-review" data-ri="${ri}">删除</button>
+              </div>
+              <textarea data-rfield="text" data-ri="${ri}" rows="2" placeholder="评价内容" maxlength="500">${escapeHtml(r.text)}</textarea>
+            </div>`).join('') : '<div class="empty-q">还没有精选评价，点击「添加精选评价」开始。</div>'}
         </div>
       </div>`;
   }
 
   function paperPanelHtml(p) {
+    const stats = paperStats(p);
     return `
       <div class="panel">
         <div class="panel-hd">
           <div>
             <h2>${escapeHtml(p.title || '新试卷')}</h2>
-            <p>${p.questions.length} 道题 · ${escapeHtml(p.subject || '未分类')}</p>
+            <p>${stats.sections} 个栏目 · ${stats.questions} 道题 · ${stats.images} 张图片</p>
           </div>
-          <a class="preview-link" href="../paper.html?id=${encodeURIComponent(p.id)}" target="_blank" rel="noopener">${ICONS.eye}预览（已发布版本）</a>
+          <div class="panel-hd-right">
+            <a class="preview-link" href="../paper.html?id=${encodeURIComponent(p.id)}&_=${Date.now()}" target="_blank" rel="noopener" title="预览读取线上已发布内容，未发布的修改不会显示">${ICONS.eye}预览线上</a>
+          </div>
         </div>
         <div class="panel-body">
           <div class="form-grid">
@@ -433,28 +626,41 @@
               <input type="date" data-pfield="date" value="${escAttr(p.date)}">
             </label>
             <label class="field">
-              <span>答案展示方式</span>
+              <span>Answer default</span>
               <select data-pfield="mode">
-                <option value="step" ${p.mode === 'step' ? 'selected' : ''}>逐题查看答案</option>
-                <option value="full" ${p.mode === 'full' ? 'selected' : ''}>整卷答案可见</option>
+                <option value="step" ${p.mode === 'step' ? 'selected' : ''}>默认隐藏答案（阅读时逐题展开）</option>
+                <option value="full" ${p.mode === 'full' ? 'selected' : ''}>默认显示答案（打开即可见）</option>
               </select>
-              <small>逐题：先看题目列表，点进去才显示该题答案。整卷：打开试卷即展示全部答案。</small>
+              <small>访客仍可随时一键隐藏 / 显示全部答案。</small>
             </label>
             <label class="field span-2">
               <span>简介</span>
-              <textarea data-pfield="summary" rows="2" placeholder="题目数量、考查范围等">${escAttr(p.summary)}</textarea>
+              <textarea data-pfield="summary" rows="2" placeholder="栏目、题目数量、考查范围等">${escAttr(p.summary)}</textarea>
             </label>
           </div>
 
-          <div class="panel-actions" style="padding-top:6px;align-items:center">
-            <h3 style="font-size:.95rem;letter-spacing:-.02em">题目（${p.questions.length}）</h3>
-            <button class="btn btn-ghost btn-sm" type="button" data-action="add-question">＋ 添加题目</button>
+          <div class="panel-sub">
+            <div class="sub-head">
+              <div>
+                <h3>栏目</h3>
+                <p>每个栏目可选择「一题一答」或「纯图片」，一个栏目可放多张图片。</p>
+              </div>
+              <div class="sub-actions">
+                <button class="btn-xs" type="button" data-action="add-section" data-kind="qa">＋ 一题一答栏目</button>
+                <button class="btn-xs" type="button" data-action="add-section" data-kind="images">＋ 纯图片栏目</button>
+              </div>
+            </div>
+            ${p.sections.length ? p.sections.map((s, si) => sectionEditorHtml(s, si, p.sections.length)).join('') : '<div class="empty-q">还没有栏目，先添加一个「一题一答」或「纯图片」栏目。</div>'}
           </div>
-          ${p.questions.length ? p.questions.map(questionEditorHtml).join('') : '<div class="empty-q">还没有题目，点击「添加题目」开始。</div>'}
 
-          <div class="panel-actions" style="border-top:1px solid var(--line);padding-top:16px">
-            <button class="btn btn-danger btn-sm" type="button" data-action="del-paper">删除这份试卷</button>
-            <span class="count-note">删除后需点击「保存并发布」才会生效</span>
+          ${reviewsEditorHtml(p)}
+
+          <div class="danger-zone">
+            <div>
+              <b>删除这份试卷</b>
+              <p>立即从线上移除，并尝试清理该试卷已上传的图片。</p>
+            </div>
+            <button class="btn btn-danger btn-sm" type="button" data-action="del-paper">立即删除</button>
           </div>
         </div>
       </div>`;
@@ -470,104 +676,254 @@
     panel.innerHTML = paperPanelHtml(p);
   }
 
+  function rerenderPreserveScroll() {
+    const y = window.scrollY;
+    renderSidebar();
+    renderPanel();
+    requestAnimationFrame(() => window.scrollTo({ top: y }));
+  }
+
+  /* ---------------- 发布 ---------------- */
+  async function publish(message) {
+    state.data.updatedAt = new Date().toISOString();
+    const text = JSON.stringify(state.data, null, 2) + '\n';
+    const res = await putText(DATA_PATH, text, message, state.sha);
+    state.sha = res.content.sha;
+    cleanDirty();
+    return res;
+  }
+
+  async function publishAfterDelete(message) {
+    if (state.busy) return false;
+    state.busy = true;
+    saveBtn.disabled = true;
+    saveBtn.textContent = '发布中…';
+    let ok = false;
+    try {
+      await publish(message);
+      ok = true;
+      toast('已立即发布到线上，GitHub Pages 约 1 分钟内更新');
+    } catch (err) {
+      setSync(err.message, 'err');
+      toast(err.message, true);
+    } finally {
+      state.busy = false;
+      saveBtn.disabled = false;
+      saveBtn.textContent = state.dirty ? '保存并发布 •' : '保存并发布';
+    }
+    return ok;
+  }
+
   /* ---------------- 字段绑定 ---------------- */
-  function bindPanelEvents() {
-    const handler = e => {
-      const t = e.target;
-      if (t.type === 'file') return;
-      let changed = false;
-      if (t.dataset.sfield) {
-        state.data.site[t.dataset.sfield] = t.value;
+  function bindField(e) {
+    const t = e.target;
+    if (t.type === 'file') return;
+    let changed = false;
+    const p = currentPaper();
+    const si = Number(t.dataset.si);
+
+    if (t.dataset.sfield) {
+      state.data.site[t.dataset.sfield] = t.value;
+      changed = true;
+    } else if (t.dataset.pfield) {
+      if (p) {
+        p[t.dataset.pfield] = t.value;
+        if (t.dataset.pfield === 'title') {
+          const active = sideList.querySelector('.side-item.is-active .t');
+          if (active) active.textContent = t.value || '未命名试卷';
+        }
         changed = true;
-      } else if (t.dataset.pfield) {
-        const p = currentPaper();
-        if (p) {
-          p[t.dataset.pfield] = t.value;
-          if (t.dataset.pfield === 'title') {
-            const active = sideList.querySelector('.side-item.is-active .t');
-            if (active) active.textContent = t.value || '未命名试卷';
-          }
-          changed = true;
-        }
-      } else if (t.dataset.qf) {
-        const p = currentPaper();
-        const q = p && p.questions[Number(t.dataset.qi)];
-        if (q) { q[t.dataset.qf] = t.value; changed = true; }
       }
-      if (changed) markDirty();
-    };
-    panel.addEventListener('input', handler);
-    panel.addEventListener('change', handler);
-
-    panel.addEventListener('click', async e => {
-      const btn = e.target.closest('[data-action]');
-      if (!btn) return;
-      const action = btn.dataset.action;
-      const p = currentPaper();
-      const qi = Number(btn.dataset.qi);
-
-      if (action === 'add-question' && p) {
-        p.questions.push({
-          id: uid('q'), label: String(p.questions.length + 1),
-          stem: '', images: [], answer: '', answerImages: []
-        });
-        markDirty(); renderSidebar(); renderPanel();
+    } else if (t.dataset.secf && p) {
+      const s = p.sections[si];
+      if (s) { s[t.dataset.secf] = t.value; changed = true; }
+    } else if (t.dataset.qf && p) {
+      const s = p.sections[si];
+      const q = s && s.questions[Number(t.dataset.qi)];
+      if (q) { q[t.dataset.qf] = t.value; changed = true; }
+    } else if (t.dataset.rfield && p) {
+      const r = p.reviews[Number(t.dataset.ri)];
+      if (r) {
+        r[t.dataset.rfield] = t.dataset.rfield === 'rating' ? Number(t.value) : t.value;
+        changed = true;
       }
+    }
+    if (changed) markDirty();
+  }
 
-      if (action === 'del-question' && p) {
-        if (!confirm('确定删除这道题？')) return;
-        p.questions.splice(qi, 1);
-        markDirty(); renderSidebar(); renderPanel();
-      }
+  function resolveImageTarget(btn, p) {
+    const si = Number(btn.dataset.si);
+    const qi = Number(btn.dataset.qi);
+    const s = p.sections[si];
+    if (!s) return null;
+    if (btn.dataset.up === 'section') return { list: s.images, kind: 'images', s };
+    const q = s.questions[qi];
+    if (!q) return null;
+    if (btn.dataset.up === 'answer') return { list: q.answerImages, kind: 'answerImages', q, s };
+    return { list: q.images, kind: 'images', q, s };
+  }
 
-      if ((action === 'move-up' || action === 'move-down') && p) {
-        const to = action === 'move-up' ? qi - 1 : qi + 1;
-        if (to < 0 || to >= p.questions.length) return;
-        [p.questions[qi], p.questions[to]] = [p.questions[to], p.questions[qi]];
-        markDirty(); renderPanel();
-      }
+  async function removePaper(paperId) {
+    const p = state.data.papers.find(x => x.id === paperId);
+    if (!p) return;
+    if (!confirm(`确定删除《${p.title || '未命名试卷'}》并立即从线上移除？`)) return;
+    state.data.papers = state.data.papers.filter(x => x.id !== paperId);
+    state.selected = { kind: 'site' };
+    markDirty();
+    renderSidebar();
+    renderPanel();
+    if (await publishAfterDelete(`content(work): 删除试卷《${p.title || '未命名试卷'}》`)) {
+      removePaperImages(paperId);
+    }
+  }
 
-      if (action === 'del-image' && p) {
-        const kind = btn.dataset.kind === 'answer' ? 'answerImages' : 'images';
-        const src = btn.dataset.src;
-        p.questions[qi][kind] = p.questions[qi][kind].filter(s => s !== src);
-        markDirty(); renderPanel();
-      }
+  async function handleAction(btn) {
+    const action = btn.dataset.action;
+    const p = currentPaper();
+    if (!p) return;
+    const si = Number(btn.dataset.si);
+    const qi = Number(btn.dataset.qi);
+    const s = p.sections[si];
 
-      if (action === 'del-paper' && p) {
-        if (!confirm(`确定删除《${p.title || '未命名试卷'}》？`)) return;
-        state.data.papers = state.data.papers.filter(x => x.id !== p.id);
-        state.selected = { kind: 'site' };
-        markDirty(); renderSidebar(); renderPanel();
-      }
-    });
+    if (action === 'add-section') {
+      const kind = btn.dataset.kind === 'images' ? 'images' : 'qa';
+      p.sections.push({
+        id: uid('s'),
+        title: kind === 'images' ? '图片资料' : '题目与答案',
+        kind, note: '', images: [],
+        questions: kind === 'qa' ? [{ id: uid('q'), label: '1', stem: '', images: [], answer: '', answerImages: [] }] : []
+      });
+      markDirty(); renderSidebar(); renderPanel();
+      return;
+    }
 
-    panel.addEventListener('change', async e => {
-      const input = e.target;
-      if (!input.dataset.upload) return;
-      if (!input.files || !input.files.length) return;
-      const p = currentPaper();
-      if (!p) return;
-      const qi = Number(input.dataset.qi);
-      const q = p.questions[qi];
-      if (!q) return;
-      const kind = input.dataset.upload === 'answer' ? 'answerImages' : 'images';
-      const label = input.closest('.upload-btn');
-      if (label) label.classList.add('is-busy');
+    if (action === 'move-sec-up' || action === 'move-sec-down') {
+      const to = action === 'move-sec-up' ? si - 1 : si + 1;
+      if (to < 0 || to >= p.sections.length) return;
+      [p.sections[si], p.sections[to]] = [p.sections[to], p.sections[si]];
+      markDirty(); renderPanel();
+      return;
+    }
 
+    if (action === 'del-section') {
+      if (!s) return;
+      const label = s.title || `栏目 ${si + 1}`;
+      if (!confirm(`删除栏目「${label}」并立即发布？栏目内的题目和图片也会从线上移除。`)) return;
+      p.sections.splice(si, 1);
+      markDirty(); renderSidebar(); renderPanel();
+      await publishAfterDelete(`content(work): 删除栏目 ${label}`);
+      return;
+    }
+
+    if (action === 'set-kind') {
+      if (!s) return;
+      const kind = btn.dataset.kind === 'images' ? 'images' : 'qa';
+      if (s.kind === kind) return;
+      s.kind = kind;
+      s.title = s.title || (kind === 'images' ? '图片资料' : '题目与答案');
+      markDirty(); renderPanel();
+      return;
+    }
+
+    if (action === 'add-question') {
+      if (!s) return;
+      s.questions.push({
+        id: uid('q'), label: String(s.questions.length + 1),
+        stem: '', images: [], answer: '', answerImages: []
+      });
+      markDirty(); renderSidebar(); renderPanel();
+      return;
+    }
+
+    if (action === 'del-question') {
+      if (!s || !s.questions[qi]) return;
+      const qLabel = s.questions[qi].label || qi + 1;
+      if (!confirm(`删除第 ${qLabel} 题并立即发布？`)) return;
+      s.questions.splice(qi, 1);
+      markDirty(); renderSidebar(); renderPanel();
+      await publishAfterDelete(`content(work): 删除题目 ${qLabel}`);
+      return;
+    }
+
+    if (action === 'move-q-up' || action === 'move-q-down') {
+      if (!s) return;
+      const to = action === 'move-q-up' ? qi - 1 : qi + 1;
+      if (to < 0 || to >= s.questions.length) return;
+      [s.questions[qi], s.questions[to]] = [s.questions[to], s.questions[qi]];
+      markDirty(); renderPanel();
+      return;
+    }
+
+    if (action === 'del-image') {
+      const target = resolveImageTarget(btn, p);
+      if (!target) return;
+      const src = btn.dataset.src;
+      if (!confirm('删除这张图片并立即发布？')) return;
+      target.list = target.list.filter(x => x !== src);
+      /* 数组是引用，需要写回 */
+      if (target.kind === 'images' && target.q) target.q.images = target.list;
+      else if (target.kind === 'answerImages' && target.q) target.q.answerImages = target.list;
+      else target.s.images = target.list;
+      markDirty(); renderPanel();
+      if (await publishAfterDelete('chore(work): 删除图片')) removeRepoImage(src);
+      return;
+    }
+
+    if (action === 'del-paper') {
+      await removePaper(p.id);
+      return;
+    }
+
+    if (action === 'add-review') {
+      p.reviews.push({ id: uid('r'), name: '', rating: 5, text: '', date: today() });
+      markDirty(); renderPanel();
+      return;
+    }
+
+    if (action === 'del-review') {
+      p.reviews.splice(Number(btn.dataset.ri), 1);
+      markDirty(); renderPanel();
+    }
+  }
+
+  async function handleUpload(input) {
+    const p = currentPaper();
+    if (!p) return;
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+
+    const target = resolveImageTarget(input, p);
+    if (!target) { toast('找不到上传位置，请刷新页面后重试', true); return; }
+
+    const zone = input.closest('.upload-zone');
+    if (zone) zone.classList.add('is-busy');
+    const originalText = zone ? zone.querySelector('.drop-tip') : null;
+    let okCount = 0;
+    const errors = [];
+
+    for (const file of files) {
+      if (originalText) originalText.textContent = `上传中… ${okCount}/${files.length}`;
       try {
-        for (const file of Array.from(input.files)) {
-          const path = await uploadImage(file, p);
-          q[kind].push(path);
-        }
+        const { path, preview } = await uploadImage(file, p);
+        state.previews[path] = preview;
+        target.list.push(path);
+        if (target.kind === 'images' && target.q) target.q.images = target.list;
+        else if (target.kind === 'answerImages' && target.q) target.q.answerImages = target.list;
+        else target.s.images = target.list;
+        okCount += 1;
         markDirty();
-        renderPanel();
-        toast('图片已上传到仓库，保存后可在页面显示');
       } catch (err) {
-        toast(err.message, true);
-        if (label) label.classList.remove('is-busy');
+        errors.push(err.message);
       }
-    });
+    }
+
+    if (zone) zone.classList.remove('is-busy');
+    if (originalText) originalText.textContent = '或拖拽图片到这里';
+
+    rerenderPreserveScroll();
+    if (okCount && errors.length) toast(`已上传 ${okCount} 张，${errors.length} 张失败：${errors[0]}`);
+    else if (okCount) toast(`已上传 ${okCount} 张图片，保存并发布后线上可见`, false);
+    else toast(errors[0] || '上传失败', true);
   }
 
   /* ---------------- 高级：更换 Token ---------------- */
@@ -604,10 +960,7 @@
       try {
         const payload = await encryptPayload({ token: value, login: state.login || 'newcyr' }, state.password);
         const config = {
-          repo: REPO,
-          branch: BRANCH,
-          dataPath: DATA_PATH,
-          configPath: CONFIG_PATH,
+          repo: REPO, branch: BRANCH, dataPath: DATA_PATH, configPath: CONFIG_PATH,
           kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: payload.iterations, salt: payload.salt },
           cipher: { name: 'AES-GCM', iv: payload.iv, data: payload.data },
           updatedAt: new Date().toISOString()
@@ -629,28 +982,21 @@
 
   /* ---------------- 保存 / 刷新 ---------------- */
   async function save() {
-    if (state.busy) return;
-    if (!state.data) return;
+    if (state.busy || !state.data) return;
     state.busy = true;
     saveBtn.disabled = true;
     saveBtn.textContent = '提交中…';
     try {
-      state.data.updatedAt = new Date().toISOString();
-      const text = JSON.stringify(state.data, null, 2) + '\n';
-      const res = await putText(DATA_PATH, text, 'content(work): 更新试卷与答案', state.sha);
-      state.sha = res.content.sha;
-      cleanDirty();
+      await publish('content(work): 更新试卷、答案与评价');
       renderPanel();
       toast('已发布，GitHub Pages 约 1 分钟内更新');
     } catch (err) {
       setSync(err.message, 'err');
       toast(err.message, true);
-      saveBtn.textContent = '保存并发布';
     } finally {
       state.busy = false;
       saveBtn.disabled = false;
-      if (state.dirty) saveBtn.textContent = '保存并发布 •';
-      else saveBtn.textContent = '保存并发布';
+      saveBtn.textContent = state.dirty ? '保存并发布 •' : '保存并发布';
     }
   }
 
@@ -699,9 +1045,7 @@
       showEditor();
       toast(`欢迎回来，${user.login}`);
     } catch (err) {
-      const msg = err.name === 'OperationError'
-        ? '密码错误，或密文已损坏'
-        : err.message;
+      const msg = err.name === 'OperationError' ? '密码错误，或密文已损坏' : err.message;
       setLoginMsg(msg, 'err');
       state.token = null;
       state.password = null;
@@ -711,11 +1055,48 @@
     }
   });
 
+  /* ---------------- 事件 ---------------- */
+  panel.addEventListener('input', bindField);
+  panel.addEventListener('change', e => {
+    if (e.target.dataset.upload) { handleUpload(e.target); return; }
+    bindField(e);
+  });
+
+  panel.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    handleAction(btn);
+  });
+
+  /* 拖拽上传 */
+  panel.addEventListener('dragover', e => {
+    const zone = e.target.closest('[data-dropzone]');
+    if (!zone) return;
+    e.preventDefault();
+    zone.classList.add('is-over');
+  });
+  panel.addEventListener('dragleave', e => {
+    const zone = e.target.closest('[data-dropzone]');
+    if (zone) zone.classList.remove('is-over');
+  });
+  panel.addEventListener('drop', e => {
+    const zone = e.target.closest('[data-dropzone]');
+    if (!zone) return;
+    e.preventDefault();
+    zone.classList.remove('is-over');
+    if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+    handleUpload({ files: e.dataTransfer.files, dataset: zone.dataset, closest: () => zone });
+  });
+
   /* ---------------- 其他按钮 ---------------- */
   $('#addPaperBtn').addEventListener('click', () => {
     const p = {
       id: uid('p'), title: '新试卷', subject: '', grade: '',
-      date: today(), summary: '', mode: 'step', questions: []
+      date: today(), summary: '', mode: 'step', cover: '',
+      sections: [{ id: uid('s'), title: '题目与答案', kind: 'qa', note: '', images: [], questions: [
+        { id: uid('q'), label: '1', stem: '', images: [], answer: '', answerImages: [] }
+      ] }],
+      reviews: []
     };
     state.data.papers.push(p);
     state.selected = { kind: 'paper', id: p.id };
@@ -735,5 +1116,4 @@
   });
 
   passwordInput.focus();
-  bindPanelEvents();
 })();

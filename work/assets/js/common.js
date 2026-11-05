@@ -1,4 +1,4 @@
-/* NEWCYR · WORKSPACE — 公共脚本：主题 / 双语 / 导航 / 数据 */
+/* NEWCYR · WORKSPACE — 公共脚本：主题 / 双语 / 导航 / 数据 / 评价 */
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -6,6 +6,7 @@
   const root = document.documentElement;
   const THEME_KEY = 'newcyr.theme';
   const LANG_KEY = 'newcyr.lang';
+  const REVIEW_KEY = 'newcyr.work.reviews';
 
   /* ---------------- theme ---------------- */
   const metaTheme = $('#themeColor');
@@ -105,25 +106,120 @@
     layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 3.5 8 12 12.5 20.5 8z"/><path d="M3.5 12 12 16.5 20.5 12M3.5 16 12 20.5 20.5 16"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.8v.4"/></svg>',
     grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>',
+    image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4.5 17 5-5 3.5 3.5 3-2.5 4 4"/></svg>',
+    star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.75 5.65 6.2.88-4.5 4.4 1.08 6.17L12 17.2 6.47 20.1l1.08-6.17-4.5-4.4 6.2-.88z" fill="currentColor"/></svg>',
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
   };
+
+  /* ---------------- 数据标准化 ---------------- */
+  function normalizeQuestion(q, j) {
+    const item = Object.assign({}, q || {});
+    if (!item.id) item.id = `q-${j + 1}`;
+    ['label', 'stem', 'answer'].forEach(k => { if (item[k] == null) item[k] = ''; });
+    item.images = Array.isArray(item.images) ? item.images.filter(Boolean) : [];
+    item.answerImages = Array.isArray(item.answerImages) ? item.answerImages.filter(Boolean) : [];
+    return item;
+  }
+
+  function normalizeReview(r, i) {
+    return {
+      id: r.id || `r-${i + 1}`,
+      name: r.name || '',
+      rating: Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5))),
+      text: r.text || '',
+      date: r.date || ''
+    };
+  }
+
+  function normalizePaper(p, i) {
+    if (!p || typeof p !== 'object') return null;
+    if (!p.id) p.id = `paper-${i + 1}`;
+    p.mode = p.mode === 'full' ? 'full' : 'step';
+    ['title', 'subject', 'grade', 'date', 'summary', 'cover'].forEach(k => { if (p[k] == null) p[k] = ''; });
+
+    let sections = Array.isArray(p.sections) ? p.sections.filter(Boolean) : [];
+    /* 兼容旧数据：questions → 一个「一题一答」栏目 */
+    if (!sections.length && Array.isArray(p.questions) && p.questions.length) {
+      sections = [{ id: `${p.id}-s1`, title: '题目与答案', kind: 'qa', questions: p.questions }];
+    }
+    p.sections = sections.map((s, si) => {
+      if (!s.id) s.id = `${p.id}-s${si + 1}`;
+      s.kind = s.kind === 'images' ? 'images' : 'qa';
+      s.title = s.title || (s.kind === 'images' ? '图片资料' : '题目与答案');
+      s.note = s.note || '';
+      s.questions = Array.isArray(s.questions) ? s.questions.map(normalizeQuestion) : [];
+      s.images = Array.isArray(s.images) ? s.images.filter(Boolean) : [];
+      return s;
+    });
+    delete p.questions;
+    p.reviews = Array.isArray(p.reviews) ? p.reviews.map(normalizeReview) : [];
+    return p;
+  }
+
+  function paperStats(p) {
+    const stats = { sections: p.sections.length, questions: 0, images: 0 };
+    p.sections.forEach(s => {
+      if (s.kind === 'qa') stats.questions += s.questions.length;
+      else stats.images += s.images.length;
+    });
+    return stats;
+  }
+
+  /* ---------------- 评价（本机存储 + 精选评价） ---------------- */
+  function readReviewStore() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(REVIEW_KEY) || '{}');
+      return raw && typeof raw === 'object' ? raw : {};
+    } catch (e) { return {}; }
+  }
+  function writeReviewStore(store) {
+    try { localStorage.setItem(REVIEW_KEY, JSON.stringify(store)); } catch (e) {}
+    document.dispatchEvent(new CustomEvent('work:reviews'));
+  }
+  function localReviews(paperId) {
+    const list = readReviewStore()[paperId];
+    return Array.isArray(list) ? list.map((r, i) => Object.assign(normalizeReview(r, i), { local: true })) : [];
+  }
+  function saveLocalReview(paperId, review) {
+    const store = readReviewStore();
+    const list = Array.isArray(store[paperId]) ? store[paperId] : [];
+    const next = normalizeReview(Object.assign({ date: new Date().toISOString().slice(0, 10) }, review, { local: undefined }));
+    const idx = list.findIndex(r => r.id === next.id);
+    if (idx >= 0) list[idx] = next; else list.push(next);
+    store[paperId] = list;
+    writeReviewStore(store);
+    return list;
+  }
+  function removeLocalReview(paperId, reviewId) {
+    const store = readReviewStore();
+    const list = Array.isArray(store[paperId]) ? store[paperId] : [];
+    store[paperId] = list.filter(r => r.id !== reviewId);
+    writeReviewStore(store);
+  }
+  function allLocalReviews() {
+    return readReviewStore();
+  }
+  function reviewsForPaper(paper) {
+    return (paper.reviews || []).concat(localReviews(paper.id));
+  }
+
+  function starsHtml(rating) {
+    const value = Math.round(Number(rating) || 0);
+    return `<span class="stars" role="img" aria-label="${value} 星">${
+      [1, 2, 3, 4, 5].map(i => `<span class="${i <= value ? 'on' : 'off'}">${ICONS.star}</span>`).join('')
+    }</span>`;
+  }
+  function averageRating(list) {
+    if (!list.length) return 0;
+    return list.reduce((sum, r) => sum + Number(r.rating || 0), 0) / list.length;
+  }
 
   /* ---------------- data ---------------- */
   async function loadData(path = 'data/papers.json') {
     const res = await fetch(`${path}?t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`数据加载失败（HTTP ${res.status}）`);
     const data = await res.json();
-    const papers = Array.isArray(data.papers) ? data.papers : [];
-    papers.forEach((p, i) => {
-      if (!p.id) p.id = `paper-${i + 1}`;
-      p.mode = p.mode === 'full' ? 'full' : 'step';
-      p.questions = Array.isArray(p.questions) ? p.questions : [];
-      p.questions.forEach((q, j) => {
-        if (!q.id) q.id = `q-${j + 1}`;
-        q.images = Array.isArray(q.images) ? q.images.filter(Boolean) : [];
-        q.answerImages = Array.isArray(q.answerImages) ? q.answerImages.filter(Boolean) : [];
-      });
-    });
+    const papers = (Array.isArray(data.papers) ? data.papers : []).map(normalizePaper).filter(Boolean);
     return {
       site: Object.assign({ title: '作业答案中心', subtitle: '', notice: '' }, data.site || {}),
       papers,
@@ -138,8 +234,8 @@
   }
 
   function modeLabel(mode, l = lang) {
-    if (mode === 'full') return l === 'en' ? 'Full paper' : '整卷答案';
-    return l === 'en' ? 'Per question' : '逐题查看';
+    if (mode === 'full') return l === 'en' ? 'Answers shown' : '默认显示答案';
+    return l === 'en' ? 'Answers hidden' : '默认隐藏答案';
   }
 
   /* ---------------- lightbox ---------------- */
@@ -183,6 +279,8 @@
   window.Work = {
     $, $$, ICONS, escapeHtml, escAttr, loadData, formatDate, modeLabel,
     reveal, bindZoom, applyLang,
+    normalizePaper, paperStats, starsHtml, averageRating,
+    localReviews, saveLocalReview, removeLocalReview, allLocalReviews, reviewsForPaper,
     getLang: () => lang,
     imageUri: (...parts) => parts.filter(Boolean).join('')
   };
