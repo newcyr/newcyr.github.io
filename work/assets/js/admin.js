@@ -306,6 +306,12 @@
     }
 
     const img = await loadImg(dataUrl);
+    const baseExt = (type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg');
+    /* 小尺寸截图保留原格式，文字更清晰 */
+    if (file.size <= 1.4 * 1024 * 1024 && img.naturalWidth <= 1600 && img.naturalHeight <= 1600) {
+      return { dataUrl, ext: baseExt };
+    }
+
     let scale = Math.min(1, 1600 / img.naturalWidth, 1600 / img.naturalHeight);
     let quality = 0.86;
     let out = '';
