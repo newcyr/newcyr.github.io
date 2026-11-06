@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-06T07:38:05.428Z",
+  "updatedAt": "2026-11-06T07:39:24.120Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
@@ -43,19 +43,22 @@
     {
       "id": "p-mw4nwjoezzw",
       "title": "德法悲诵资料",
-      "subject": "",
-      "grade": "",
+      "subject": "德法",
+      "grade": "。",
       "date": "2026-11-06",
-      "summary": "",
+      "summary": "德法",
       "mode": "step",
       "cover": "",
       "sections": [
         {
           "id": "s-mw4nwjoeh4z",
           "title": "题目与答案",
-          "kind": "qa",
-          "note": "",
-          "images": [],
+          "kind": "images",
+          "note": "cyrcyrgo@outlook.com",
+          "images": [
+            "assets/uploads/p-mw4nwjoezzw/mw4nya0t-2mv17.jpg",
+            "assets/uploads/p-mw4nwjoezzw/mw4nyjim-i1x47.jpg"
+          ],
           "questions": [
             {
               "id": "q-mw4nwjoevko",
