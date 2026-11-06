@@ -139,7 +139,7 @@ html[data-theme="dark"] .kind-badge.images{color:#4ade80}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .thumbs-empty{font-size:.76rem;color:var(--ink-3)}
 .thumb{position:relative;width:86px;height:86px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
-.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
 .thumb .del{position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;
   background:rgba(6,10,20,.74);color:#fff;display:grid;place-items:center}
 .thumb .del svg{width:11px;height:11px}

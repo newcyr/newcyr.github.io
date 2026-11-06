@@ -300,12 +300,20 @@ html[data-theme="dark"] .hero-bg::after{background-image:linear-gradient(rgba(25
 
 /* lightbox */
 .lightbox{position:fixed;inset:0;z-index:200;display:none;place-items:center;padding:24px;background:rgba(4,8,16,.82);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow:hidden}
 .lightbox.open{display:grid}
-.lightbox img{max-width:min(1100px,94vw);max-height:88vh;width:auto;border-radius:12px;box-shadow:0 40px 80px -30px rgba(0,0,0,.8)}
+.lightbox img{max-width:min(1100px,94vw);max-height:calc(88vh - 92px);width:auto;border-radius:12px;
+  box-shadow:0 40px 80px -30px rgba(0,0,0,.8);transition:transform .3s var(--ease)}
 .lightbox .close{position:absolute;right:22px;top:18px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
-  background:rgba(255,255,255,.12);color:#fff}
+  background:rgba(255,255,255,.12);color:#fff;transition:background .2s,transform .3s var(--ease)}
+.lightbox .close:hover{background:rgba(255,255,255,.24);transform:rotate(90deg)}
 .lightbox .close svg{width:18px;height:18px}
+.lightbox .rotate{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:2;
+  display:inline-flex;align-items:center;gap:.42rem;padding:.46rem .92rem;border-radius:var(--pill);
+  background:rgba(255,255,255,.14);color:#fff;font-size:.78rem;font-weight:600;letter-spacing:.02em;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,color .2s}
+.lightbox .rotate:hover{background:rgba(255,255,255,.26)}
+.lightbox .rotate svg{width:15px;height:15px}
 
 /* ---------------- footer ---------------- */
 .site-footer{background:var(--bg-soft);border-top:1px solid var(--line)}

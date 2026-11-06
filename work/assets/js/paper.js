@@ -2,7 +2,8 @@
 (() => {
   const {
     $, ICONS, escapeHtml, escAttr, loadData, formatDate, modeLabel, reveal, bindZoom, getLang,
-    paperStats, starsHtml, averageRating, reviewsForPaper, localReviews, saveLocalReview, removeLocalReview
+    paperStats, starsHtml, averageRating, reviewsForPaper, localReviews, saveLocalReview, removeLocalReview,
+    hydrateImages, IMG_PLACEHOLDER
   } = window.Work;
 
   const params = new URLSearchParams(location.search);
@@ -24,16 +25,9 @@
   const isEn = () => getLang() === 'en';
   const T = (zh, en) => (isEn() ? en : zh);
 
-  function imgSrc(path) {
-    if (!path) return '';
-    if (/^(https?:|data:|blob:)/.test(path)) return path;
-    /* 数据中的图片路径相对于 work/ 根目录 */
-    return path;
-  }
-
   function imgList(paths, extra = '') {
     return (paths || []).filter(Boolean)
-      .map(p => `<img src="${escAttr(imgSrc(p))}" alt="题目图片" loading="lazy" data-zoom ${extra}>`)
+      .map(p => `<img src="${IMG_PLACEHOLDER}" data-img-path="${escAttr(p)}" alt="题目图片" loading="lazy" data-zoom ${extra}>`)
       .join('');
   }
 
@@ -117,7 +111,7 @@
           ? (section.images.length
             ? `<div class="img-gallery">${section.images.map((src, ii) => `
                 <figure class="img-tile">
-                  <img src="${escAttr(imgSrc(src))}" alt="${escapeHtml(section.title || '图片')} ${ii + 1}" loading="lazy" data-zoom>
+                  <img src="${IMG_PLACEHOLDER}" data-img-path="${escAttr(src)}" alt="${escapeHtml(section.title || '图片')} ${ii + 1}" loading="lazy" data-zoom>
                   <figcaption><span>${String(ii + 1).padStart(2, '0')}</span>${T('点击放大', 'Tap to zoom')}</figcaption>
                 </figure>`).join('')}</div>`
             : `<div class="sec-empty">${T('该栏目还没有图片。', 'No images in this section yet.')}</div>`)
@@ -392,6 +386,7 @@
 
     state.innerHTML = '';
     content.innerHTML = paper.sections.map(sectionHtml).join('');
+    hydrateImages(content);
     renderReviews();
 
     bindZoom(content);

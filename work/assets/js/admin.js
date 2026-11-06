@@ -464,7 +464,7 @@
   function uploaderHtml(list, attrs, labelText) {
     const thumbs = (list || []).map(src => `
       <div class="thumb">
-        <img src="${escAttr(adminImgSrc(src))}" alt="" loading="lazy">
+        <img src="${escAttr(adminImgSrc(src))}" alt="点击预览" loading="lazy" data-zoom>
         ${state.previews[src] ? '<span class="local-tag">新</span>' : ''}
         <button class="del" type="button" data-action="del-image" data-src="${escAttr(src)}" ${attrs} title="删除这张图片" aria-label="删除图片">${ICONS.x}</button>
       </div>`).join('');

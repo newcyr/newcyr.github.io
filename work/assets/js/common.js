@@ -108,6 +108,7 @@
     grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>',
     image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4.5 17 5-5 3.5 3.5 3-2.5 4 4"/></svg>',
     camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h2.8l1.4-2.2h6.6l1.4 2.2h2.8a1.5 1.5 0 0 1 1.5 1.5v7.5a1.5 1.5 0 0 1-1.5 1.5h-15a1.5 1.5 0 0 1-1.5-1.5V10a1.5 1.5 0 0 1 1.5-1.5z"/><circle cx="12" cy="13.6" r="3.1"/></svg>',
+    rotate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>',
     star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.75 5.65 6.2.88-4.5 4.4 1.08 6.17L12 17.2 6.47 20.1l1.08-6.17-4.5-4.4 6.2-.88z" fill="currentColor"/></svg>',
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
   };
@@ -239,8 +240,129 @@
     return l === 'en' ? 'Answers hidden' : '默认隐藏答案';
   }
 
+  /* ---------------- image mirrors ----------------
+     前端图片优先走镜像；镜像连不上 / 卡住 / 速度低于 30KB/s 时自动切换下一个镜像，
+     两个镜像都不可用时回到官方源。 */
+  const IMG_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  const MIRROR_BASES = [
+    'https://cdn.jsdelivr.net/gh/newcyr/newcyr.github.io@main/work/',
+    'https://fastly.jsdelivr.net/gh/newcyr/newcyr.github.io@main/work/'
+  ];
+  const MIRROR_MIN_SPEED = 30 * 1024;   // 最低 30KB/s
+  const MIRROR_STALL_MS = 6000;         // 6 秒收不到数据视为卡死
+  const MIRROR_CONNECT_MS = 10000;      // 10 秒拿不到响应视为不连通
+  const MIRROR_TOTAL_MS = 25000;        // 单张图片最长等待
+  const MIRROR_COOLDOWN = 10 * 60 * 1000;
+  const mirrorState = MIRROR_BASES.map(() => ({ deadUntil: 0 }));
+  let preferredMirror = 0;
+  const assetCache = new Map();
+  const assetJobs = new Map();
+
+  function officialUrl(path) {
+    if (/^(https?:|data:|blob:)/.test(path)) return path;
+    try { return new URL(path, location.href).href; } catch (e) { return path; }
+  }
+
+  async function downloadWithGuard(url) {
+    const controller = new AbortController();
+    const connectTimer = setTimeout(() => controller.abort(), MIRROR_CONNECT_MS);
+    const totalTimer = setTimeout(() => controller.abort(), MIRROR_TOTAL_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal, mode: 'cors', credentials: 'omit' });
+      clearTimeout(connectTimer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.body || !res.body.getReader) return await res.blob();
+      const reader = res.body.getReader();
+      const chunks = [];
+      let bytes = 0;
+      const started = performance.now();
+      while (true) {
+        let stallTimer = 0;
+        const stalled = new Promise((_, reject) => {
+          stallTimer = setTimeout(() => {
+            controller.abort();
+            reject(new Error('stalled'));
+          }, MIRROR_STALL_MS);
+        });
+        const { done, value } = await Promise.race([reader.read(), stalled]);
+        clearTimeout(stallTimer);
+        if (done) break;
+        chunks.push(value);
+        bytes += value.byteLength;
+        const elapsed = (performance.now() - started) / 1000;
+        if (elapsed >= 4 && bytes / elapsed < MIRROR_MIN_SPEED) {
+          controller.abort();
+          throw new Error('slow');
+        }
+      }
+      return new Blob(chunks, { type: res.headers.get('content-type') || 'image/jpeg' });
+    } finally {
+      clearTimeout(connectTimer);
+      clearTimeout(totalTimer);
+    }
+  }
+
+  function resolveAssetUrl(path) {
+    if (!path) return Promise.resolve('');
+    if (/^(https?:|data:|blob:)/.test(path)) return Promise.resolve(path);
+    if (!/^assets\//.test(path)) return Promise.resolve(officialUrl(path));
+    if (assetCache.has(path)) return Promise.resolve(assetCache.get(path));
+    if (assetJobs.has(path)) return assetJobs.get(path);
+
+    const job = (async () => {
+      const now = Date.now();
+      const order = [];
+      for (let step = 0; step < MIRROR_BASES.length; step += 1) {
+        const idx = (preferredMirror + step) % MIRROR_BASES.length;
+        if (mirrorState[idx].deadUntil <= now) order.push(idx);
+      }
+      for (const idx of order) {
+        try {
+          const blob = await downloadWithGuard(MIRROR_BASES[idx] + path);
+          const url = URL.createObjectURL(blob);
+          preferredMirror = idx;
+          mirrorState[idx].deadUntil = 0;
+          assetCache.set(path, url);
+          return url;
+        } catch (err) {
+          /* 404 只说明镜像还没同步到这张新图，不代表镜像不可用；网络/超时/低速才冷却 */
+          if (!/HTTP 404/.test(err.message || '')) {
+            mirrorState[idx].deadUntil = Date.now() + MIRROR_COOLDOWN;
+          }
+        }
+      }
+      const fallback = officialUrl(path);
+      assetCache.set(path, fallback);
+      return fallback;
+    })();
+    assetJobs.set(path, job);
+    return job.finally(() => assetJobs.delete(path));
+  }
+
+  function hydrateImages(scope = document) {
+    $$('img[data-img-path]', scope).forEach(img => {
+      if (img.dataset.imgBound) return;
+      img.dataset.imgBound = '1';
+      const path = img.dataset.imgPath;
+      resolveAssetUrl(path).then(url => {
+        img.dataset.resolvedSrc = url;
+        img.src = url;
+      }).catch(() => { img.src = officialUrl(path); });
+    });
+  }
+
   /* ---------------- lightbox ---------------- */
-  const zoomSrc = new WeakSet();
+  let rotation = 0;
+  let zoomBound = false;
+  function applyRotation(box) {
+    const img = box.querySelector('.lightbox-img');
+    if (!img) return;
+    const odd = rotation % 180 !== 0;
+    img.style.transform = `rotate(${rotation}deg)`;
+    /* 竖图旋转后交换受限边，避免超出屏幕；底部留出按钮空间 */
+    img.style.maxWidth = odd ? 'calc(88vh - 92px)' : 'min(1100px,94vw)';
+    img.style.maxHeight = odd ? '94vw' : 'calc(88vh - 92px)';
+  }
   function ensureLightbox() {
     let box = $('#lightbox');
     if (box) return box;
@@ -249,24 +371,53 @@
     box.className = 'lightbox';
     box.setAttribute('role', 'dialog');
     box.setAttribute('aria-modal', 'true');
-    box.innerHTML = `<button class="close" type="button" aria-label="关闭">${ICONS.x}</button><img alt="">`;
+    box.innerHTML = `<button class="close" type="button" aria-label="关闭">${ICONS.x}</button>
+      <img class="lightbox-img" alt="">
+      <button class="rotate" type="button" aria-label="旋转图片" title="旋转 90°">${ICONS.rotate}<span>旋转</span></button>`;
     document.body.appendChild(box);
     const close = () => { box.classList.remove('open'); box.querySelector('img').src = ''; };
     box.addEventListener('click', e => {
-      if (e.target === box || e.target.closest('.close')) close();
+      if (e.target === box || e.target.closest('.close')) { close(); return; }
+      if (e.target.closest('.rotate')) {
+        rotation = (rotation + 90) % 360;
+        applyRotation(box);
+      }
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && box.classList.contains('open')) close(); });
+    document.addEventListener('keydown', e => {
+      if (!box.classList.contains('open')) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'r' || e.key === 'R') { rotation = (rotation + 90) % 360; applyRotation(box); }
+    });
     return box;
   }
-  function bindZoom(scope = document) {
-    $$('[data-zoom]', scope).forEach(img => {
-      if (zoomSrc.has(img)) return;
-      zoomSrc.add(img);
-      img.addEventListener('click', () => {
-        const box = ensureLightbox();
-        box.querySelector('img').src = img.getAttribute('src');
-        box.classList.add('open');
-      });
+  function openLightbox(src, alt) {
+    const box = ensureLightbox();
+    const img = box.querySelector('.lightbox-img');
+    img.src = src;
+    img.alt = alt || '';
+    rotation = 0;
+    applyRotation(box);
+    box.classList.add('open');
+  }
+  function bindZoom() {
+    if (zoomBound) return;
+    zoomBound = true;
+    /* 事件委托：后台缩略图等动态渲染的图片也能点击预览 */
+    document.addEventListener('click', e => {
+      const img = e.target.closest('[data-zoom]');
+      if (!img || img.closest('#lightbox')) return;
+      e.preventDefault();
+      const alt = img.getAttribute('alt');
+      const ready = img.dataset.resolvedSrc;
+      if (ready) { openLightbox(ready, alt); return; }
+      const path = img.dataset.imgPath;
+      if (path) {
+        resolveAssetUrl(path)
+          .then(url => openLightbox(url, alt))
+          .catch(() => openLightbox(officialUrl(path), alt));
+        return;
+      }
+      openLightbox(img.getAttribute('src'), alt);
     });
   }
 
@@ -274,12 +425,14 @@
     document.body.classList.add('loaded');
     reveal();
     bindZoom();
+    hydrateImages();
   });
   applyLang(lang, false);
 
   window.Work = {
     $, $$, ICONS, escapeHtml, escAttr, loadData, formatDate, modeLabel,
     reveal, bindZoom, applyLang,
+    IMG_PLACEHOLDER, hydrateImages, resolveAssetUrl, officialUrl,
     normalizePaper, paperStats, starsHtml, averageRating,
     localReviews, saveLocalReview, removeLocalReview, allLocalReviews, reviewsForPaper,
     getLang: () => lang,
