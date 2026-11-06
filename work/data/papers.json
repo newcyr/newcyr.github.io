@@ -1,9 +1,40 @@
 {
-  "updatedAt": "2026-11-06T07:11:20.875Z",
+  "updatedAt": "2026-11-06T07:21:33.875Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
     "notice": ""
   },
-  "papers": []
+  "papers": [
+    {
+      "id": "p-mw4nbl0wxtk",
+      "title": "新试卷",
+      "subject": "",
+      "grade": "",
+      "date": "2026-11-06",
+      "summary": "i",
+      "mode": "step",
+      "cover": "",
+      "sections": [
+        {
+          "id": "s-mw4nbl0zsq6",
+          "title": "题目与答案",
+          "kind": "qa",
+          "note": "",
+          "images": [],
+          "questions": [
+            {
+              "id": "q-mw4nbl0z77i",
+              "label": "1",
+              "stem": "i",
+              "images": [],
+              "answer": "i",
+              "answerImages": []
+            }
+          ]
+        }
+      ],
+      "reviews": []
+    }
+  ]
 }
