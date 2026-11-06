@@ -1,41 +1,11 @@
 {
-  "updatedAt": "2026-11-05T13:04:29.000Z",
+  "updatedAt": "2026-11-06T07:05:37.162Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
     "notice": ""
   },
   "papers": [
-    {
-      "id": "p-mw3jm2u4hqs",
-      "title": "新试卷",
-      "subject": "",
-      "grade": "",
-      "date": "2026-11-05",
-      "summary": "",
-      "mode": "step",
-      "cover": "",
-      "sections": [
-        {
-          "id": "s-mw3jm2u4kig",
-          "title": "题目与答案",
-          "kind": "qa",
-          "note": "",
-          "images": [],
-          "questions": [
-            {
-              "id": "q-mw3jm2u40i7",
-              "label": "1",
-              "stem": "",
-              "images": [],
-              "answer": "",
-              "answerImages": []
-            }
-          ]
-        }
-      ],
-      "reviews": []
-    },
     {
       "id": "p-abcf9000pks9",
       "title": "八年级地理 · 沙尘与灰霾天气 专题练",
