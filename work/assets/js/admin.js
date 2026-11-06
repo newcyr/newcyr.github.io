@@ -1070,7 +1070,8 @@
   /* ---------------- 事件 ---------------- */
   panel.addEventListener('input', bindField);
   panel.addEventListener('change', e => {
-    if (e.target.dataset.upload) { handleUpload(e.target); return; }
+    /* data-upload 是空值属性，dataset.upload 为 ""，必须按属性是否存在判断 */
+    if (e.target.matches && e.target.matches('[data-upload]')) { handleUpload(e.target); return; }
     bindField(e);
   });
 
