@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-06T07:21:33.875Z",
+  "updatedAt": "2026-11-06T07:33:24.996Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
@@ -27,7 +27,9 @@
               "id": "q-mw4nbl0z77i",
               "label": "1",
               "stem": "i",
-              "images": [],
+              "images": [
+                "assets/uploads/p-mw4nbl0wxtk/mw4nqvdx-ow5po.jpg"
+              ],
               "answer": "i",
               "answerImages": []
             }
