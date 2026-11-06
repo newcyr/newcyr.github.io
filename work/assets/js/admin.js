@@ -279,14 +279,17 @@
   const loadImg = src => new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('图片解析失败，请换一张 JPG/PNG 图片'));
+    img.onerror = () => reject(new Error('无法读取这张图片，可能是手机相机的 HEIC/HEIF 格式。请把相机格式设为「兼容性最佳 / JPEG」，或截图后再上传'));
     img.src = src;
   });
 
   const EXT_TYPE = {
     png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
-    gif: 'image/gif', svg: 'image/svg+xml', bmp: 'image/bmp'
+    gif: 'image/gif', svg: 'image/svg+xml', bmp: 'image/bmp',
+    heic: 'image/heic', heif: 'image/heif', avif: 'image/avif'
   };
+  /* 可原样上传的格式（清晰度优先）；其余格式统一转成 JPG，兼容性最好 */
+  const SAFE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
   function detectType(file) {
     if (file.type && file.type.startsWith('image/')) return file.type;
@@ -297,7 +300,7 @@
   async function prepareImage(file) {
     const type = detectType(file);
     if (!type) throw new Error(`「${file.name}」不是受支持的图片格式，请使用 JPG / PNG / WebP`);
-    if (file.size > 12 * 1024 * 1024) throw new Error(`「${file.name}」超过 12MB，请压缩后再上传`);
+    if (file.size > 30 * 1024 * 1024) throw new Error(`「${file.name}」超过 30MB，请压缩后再上传`);
     const dataUrl = await readDataUrl(file);
 
     if (type === 'image/svg+xml' || type === 'image/gif') {
@@ -307,8 +310,8 @@
 
     const img = await loadImg(dataUrl);
     const baseExt = (type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg');
-    /* 小尺寸截图保留原格式，文字更清晰 */
-    if (file.size <= 1.4 * 1024 * 1024 && img.naturalWidth <= 1600 && img.naturalHeight <= 1600) {
+    /* 截图类小图保留原格式，文字更清晰 */
+    if (file.size <= 1.4 * 1024 * 1024 && img.naturalWidth <= 1600 && img.naturalHeight <= 1600 && SAFE_TYPES.includes(type)) {
       return { dataUrl, ext: baseExt };
     }
 
@@ -471,6 +474,9 @@
         <div class="upload-zone" data-dropzone ${attrs}>
           <label class="upload-btn">${ICONS.image}${labelText}
             <input class="file-input" type="file" accept="image/*" multiple data-upload ${attrs}>
+          </label>
+          <label class="upload-btn is-camera">${ICONS.camera}拍照上传
+            <input class="file-input" type="file" accept="image/*" capture="environment" data-upload ${attrs}>
           </label>
           <span class="drop-tip">或拖拽图片到这里</span>
         </div>
