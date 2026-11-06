@@ -153,17 +153,30 @@
     }
   }
 
-  /* ---------------- 答案速览 ---------------- */
+  /* ---------------- 答案速览（进入试卷即完整展示全部答案） ---------------- */
   function glanceItems() {
     const items = [];
+    let ordinal = 0;
     paper.sections.forEach(section => {
       if (section.kind !== 'qa') return;
-      section.questions.forEach((q, i) => {
+      section.questions.forEach(q => {
+        ordinal += 1;
         if (!q.answer && !q.answerImages.length) return;
-        items.push({ q, label: q.label || String(i + 1) });
+        items.push({ q, label: q.label || String(ordinal) });
       });
     });
     return items;
+  }
+
+  function answerText(q) {
+    return q.answer || T('图片答案', 'Image answer');
+  }
+
+  /* 速览行只取答案首行（如选择题的 C），完整内容在下方明细中展示 */
+  function answerKey(q) {
+    const text = answerText(q).trim();
+    const first = text.split(/\r?\n/).find(line => line.trim()) || text;
+    return first.length > 18 ? `${first.slice(0, 18)}…` : first;
   }
 
   function renderGlance() {
@@ -174,23 +187,16 @@
       glance.className = '';
       return;
     }
-    glance.className = `answer-glance reveal${glanceHidden ? ' is-hidden' : ''}`;
-    glance.innerHTML = `
-      <div class="ag-head">
-        <span class="ag-mark">${ICONS.check}</span>
-        <div class="ag-title">
-          <small>Answer key</small>
-          <h2>${T('答案速览', 'Answers at a glance')}</h2>
-        </div>
-        <span class="ag-count">${items.length} ${T('道题', 'answered')}</span>
-        <button class="answer-toggle" id="glanceToggle" type="button" aria-expanded="${!glanceHidden}">
-          ${glanceHidden ? ICONS.eye : ICONS.eyeOff}<span>${glanceHidden ? T('显示答案', 'Show answers') : T('隐藏答案', 'Hide answers')}</span>
-        </button>
-      </div>
-      <div class="ag-grid">
+    /* 所有答案都是单行短答案时，仅用紧凑答案串即可完整展示，不再重复明细 */
+    const compactOnly = items.every(({ q }) => {
+      const text = answerText(q).trim();
+      return q.answer && !/\r?\n/.test(text) && text.length <= 18;
+    });
+    const detailHtml = compactOnly ? '' : `
+      <div class="ag-list">
         ${items.map(({ q, label }) => {
           const count = q.answerImages.length;
-          const text = q.answer || T('图片答案', 'Image answer');
+          const text = answerText(q);
           return `<a class="ag-item" href="#q-${escAttr(q.id)}" data-glance="${escAttr(q.id)}" title="${escAttr(text)}">
             <span class="ag-no">${escapeHtml(label)}</span>
             <span class="ag-text">${escapeHtml(text)}</span>
@@ -198,6 +204,26 @@
           </a>`;
         }).join('')}
       </div>`;
+
+    glance.className = `answer-glance reveal${glanceHidden ? ' is-hidden' : ''}`;
+    glance.innerHTML = `
+      <div class="ag-head">
+        <span class="ag-mark">${ICONS.check}</span>
+        <div class="ag-title">
+          <small>Answer key</small>
+          <h2>${T('全部答案', 'All answers')}</h2>
+        </div>
+        <span class="ag-count">${items.length} ${T('道题', 'answered')}</span>
+        <button class="answer-toggle" id="glanceToggle" type="button" aria-expanded="${!glanceHidden}">
+          ${glanceHidden ? ICONS.eye : ICONS.eyeOff}<span>${glanceHidden ? T('显示答案', 'Show answers') : T('隐藏答案', 'Hide answers')}</span>
+        </button>
+      </div>
+      <div class="ag-strip">
+        ${items.map(({ q, label }) => `<a class="ag-pair" href="#q-${escAttr(q.id)}" data-glance="${escAttr(q.id)}" title="${escAttr(answerText(q))}">
+          <span class="ag-pair-no">${escapeHtml(label)}</span><span class="ag-pair-key">${escapeHtml(answerKey(q))}</span>
+        </a>`).join('')}
+      </div>
+      ${detailHtml}`;
 
     $('#glanceToggle').addEventListener('click', () => {
       glanceHidden = !glanceHidden;
