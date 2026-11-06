@@ -1,9 +1,44 @@
 {
-  "updatedAt": "2026-11-06T07:35:37.615Z",
+  "updatedAt": "2026-11-06T07:37:34.997Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
     "notice": ""
   },
-  "papers": []
+  "papers": [
+    {
+      "id": "p-mw4ntzo8axs",
+      "title": "历屎背诵资料",
+      "subject": "历屎",
+      "grade": "。",
+      "date": "2026-11-06",
+      "summary": "历屎",
+      "mode": "step",
+      "cover": "",
+      "sections": [
+        {
+          "id": "s-mw4ntzo8t7x",
+          "title": "题目与答案",
+          "kind": "images",
+          "note": "cyrcyrgo@outlook.com",
+          "images": [
+            "assets/uploads/p-mw4ntzo8axs/mw4nvcy7-ylu85.jpg",
+            "assets/uploads/p-mw4ntzo8axs/mw4nvqxh-271c7.jpg",
+            "assets/uploads/p-mw4ntzo8axs/mw4nw7f4-p1sdq.jpg"
+          ],
+          "questions": [
+            {
+              "id": "q-mw4ntzo850q",
+              "label": "1",
+              "stem": "",
+              "images": [],
+              "answer": "",
+              "answerImages": []
+            }
+          ]
+        }
+      ],
+      "reviews": []
+    }
+  ]
 }
