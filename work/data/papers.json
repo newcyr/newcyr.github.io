@@ -1,31 +1,9 @@
 {
-  "updatedAt": "2026-11-06T07:10:53.017Z",
+  "updatedAt": "2026-11-06T07:11:20.875Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
     "notice": ""
   },
-  "papers": [
-    {
-      "id": "p-mw4mrruera0",
-      "title": "历屎悲诵资料",
-      "subject": "历史",
-      "grade": "。",
-      "date": "2026-11-06",
-      "summary": "。",
-      "mode": "full",
-      "cover": "",
-      "sections": [
-        {
-          "id": "s-mw4mtbc0ura",
-          "title": "图片资料",
-          "kind": "images",
-          "note": "",
-          "images": [],
-          "questions": []
-        }
-      ],
-      "reviews": []
-    }
-  ]
+  "papers": []
 }
