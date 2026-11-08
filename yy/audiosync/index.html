@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>音频同步器 · 多设备同步播放 | NEWCYR</title>
+<meta name="description" content="音频同步器是一款局域网多设备同步播放工具：一台手机创建房间，其它设备扫码加入，同一段音频在每台设备上同时响起。支持时钟校准与本机毫秒级微调，Android 8.0+，无需账号。">
+<meta name="theme-color" content="#F6F7FC">
+<meta property="og:title" content="音频同步器 · 让每台设备，同时响起">
+<meta property="og:description" content="局域网多设备同步播放：主机选歌，其它设备加入，一起播放同一段音频。v1.0.0 现已开放下载。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://newcyr.github.io/yy/audiosync/">
+<link rel="canonical" href="https://newcyr.github.io/yy/audiosync/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%235B4BFF'/%3E%3Cg fill='%23fff'%3E%3Crect x='14' y='26' width='6' height='12' rx='3'/%3E%3Crect x='29' y='16' width='6' height='32' rx='3'/%3E%3Crect x='44' y='22' width='6' height='20' rx='3'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f6f7fc;
+  --panel:#ffffff;
+  --panel-2:#f7f8fe;
+  --ink:#0b1020;
+  --ink-2:#3e4759;
+  --ink-3:#6b7488;
+  --line:#e5e8f2;
+  --line-strong:#d5daea;
+  --brand:#5b4bff;
+  --brand-2:#8b5cf6;
+  --brand-soft:#eeedff;
+  --brand-ink:#4433d6;
+  --grad:linear-gradient(135deg,#5b4bff 0%,#8b5cf6 100%);
+  --grad-text:linear-gradient(135deg,#5b4bff 0%,#8b5cf6 100%);
+  --nav-bg:rgba(246,247,252,.82);
+  --shadow-sm:0 1px 2px rgba(15,23,42,.04),0 12px 32px -18px rgba(15,23,42,.2);
+  --shadow-lg:0 2px 8px rgba(15,23,42,.04),0 34px 80px -36px rgba(15,23,42,.32);
+  --pill:999px;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter","Helvetica Neue","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+html[data-theme="dark"]{
+  --bg:#080a15;
+  --panel:#0e1224;
+  --panel-2:#121830;
+  --ink:#f2f4fd;
+  --ink-2:#c3c9dd;
+  --ink-3:#8b93ad;
+  --line:#1d2440;
+  --line-strong:#2b3457;
+  --brand:#7b6dff;
+  --brand-2:#a78bfa;
+  --brand-soft:rgba(123,109,255,.15);
+  --brand-ink:#c3bcff;
+  --grad:linear-gradient(135deg,#6b5bff 0%,#a78bfa 100%);
+  --grad-text:linear-gradient(135deg,#a99cff 0%,#d6c9ff 100%);
+  --nav-bg:rgba(8,10,21,.82);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4),0 14px 34px -18px rgba(0,0,0,.7);
+  --shadow-lg:0 2px 8px rgba(0,0,0,.45),0 34px 74px -30px rgba(0,0,0,.8);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:92px;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.72;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background-color .45s ease,color .45s ease;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+::selection{background:rgba(91,75,255,.18)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:8px}
+.shell{width:min(1120px,calc(100% - 48px));margin-inline:auto}
+.skip{position:fixed;left:16px;top:-70px;z-index:300;padding:.7rem 1.1rem;background:var(--ink);color:var(--bg);border-radius:10px;transition:top .3s}
+.skip:focus{top:16px}
+
+/* header */
+.site-header{
+  position:sticky;top:0;z-index:120;background:var(--nav-bg);
+  backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+  border-bottom:1px solid transparent;transition:border-color .3s,box-shadow .3s,background-color .45s;
+}
+.site-header.scrolled{border-bottom-color:var(--line);box-shadow:0 10px 30px -24px rgba(15,23,42,.4)}
+.nav-wrap{display:flex;align-items:center;gap:clamp(16px,4vw,44px);height:72px}
+.brand{display:inline-flex;align-items:center;gap:.7rem;flex:none}
+.brand-mark{width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center;box-shadow:0 10px 22px -10px rgba(91,75,255,.7)}
+.brand-mark svg{width:19px;height:19px}
+.brand-text{display:flex;flex-direction:column;line-height:1.1}
+.brand-text b{font-size:.98rem;font-weight:700;letter-spacing:.06em}
+.brand-text small{font-size:.6rem;letter-spacing:.22em;color:var(--ink-3);margin-top:4px}
+.nav-links{display:flex;align-items:center;gap:clamp(16px,2.4vw,30px);margin-left:auto}
+.nav-links a{font-size:.9rem;font-weight:500;color:var(--ink-2);position:relative;padding:6px 0;transition:color .25s}
+.nav-links a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;border-radius:2px;background:var(--grad);transition:right .35s var(--ease)}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a:hover::after{right:0}
+.nav-actions{display:flex;align-items:center;gap:10px;flex:none}
+.icon-btn{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:var(--panel);color:var(--ink-2);transition:transform .35s var(--ease),border-color .25s,color .25s}
+.icon-btn:hover{color:var(--ink);border-color:var(--line-strong);transform:translateY(-1px)}
+.icon-btn svg{width:17px;height:17px}
+.theme-btn .icon-sun{display:none}
+html[data-theme="dark"] .theme-btn .icon-sun{display:block}
+html[data-theme="dark"] .theme-btn .icon-moon{display:none}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+  padding:.84rem 1.45rem;border-radius:var(--pill);font-size:.92rem;font-weight:600;white-space:nowrap;
+  transition:transform .4s var(--ease),box-shadow .4s,background .3s,border-color .3s,color .3s;
+}
+.btn svg{width:16px;height:16px;transition:transform .4s var(--ease)}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 12px 28px -14px rgba(91,75,255,.8)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 40px -16px rgba(91,75,255,.85)}
+.btn-primary:hover svg{transform:translateX(3px)}
+.btn-ghost{background:var(--panel);color:var(--ink-2);border:1px solid var(--line)}
+.btn-ghost:hover{transform:translateY(-2px);border-color:var(--line-strong);color:var(--ink);box-shadow:var(--shadow-sm)}
+.btn-lg{padding:1rem 1.7rem;font-size:1rem}
+.nav-cta{padding:.66rem 1.2rem;font-size:.85rem}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding:clamp(44px,6vw,78px) 0 clamp(52px,7vw,84px)}
+.hero::before{content:"";position:absolute;width:min(820px,100vw);height:min(820px,100vw);right:-20%;top:-38%;border-radius:50%;background:radial-gradient(circle,rgba(91,75,255,.13) 0%,rgba(91,75,255,.04) 46%,transparent 68%);pointer-events:none}
+.hero::after{content:"";position:absolute;width:min(520px,80vw);height:min(520px,80vw);left:-14%;bottom:-30%;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.1) 0%,transparent 66%);pointer-events:none}
+.hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(28px,5vw,62px);align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;padding:.42rem .82rem;border-radius:var(--pill);background:var(--brand-soft);color:var(--brand-ink);font-size:.76rem;font-weight:600}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 3px rgba(91,75,255,.15)}
+h1{margin:1.05rem 0 .95rem;font-size:clamp(2.3rem,5.4vw,3.9rem);line-height:1.14;letter-spacing:-.03em;font-weight:700}
+.grad-text{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{max-width:34em;color:var(--ink-2);font-size:clamp(1rem,1.5vw,1.06rem);line-height:1.85}
+.lead strong{color:var(--ink);font-weight:600}
+.hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
+.hero-meta{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;margin-top:1.5rem;list-style:none;color:var(--ink-3);font-size:.8rem}
+.hero-meta li{display:inline-flex;align-items:center;gap:.42rem}
+.hero-meta li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--brand);opacity:.6}
+.trust-note{margin-top:1.1rem;font-size:.76rem;color:var(--ink-3);display:flex;gap:.45rem;align-items:center}
+.trust-note svg{width:14px;height:14px;flex:none;color:var(--brand)}
+
+/* hero visual: three devices + waves */
+.sync-visual{position:relative;display:flex;justify-content:center;align-items:center;min-height:340px}
+.glow{position:absolute;inset:12% 6% 8%;border-radius:50%;filter:blur(46px);background:linear-gradient(135deg,rgba(91,75,255,.2),rgba(139,92,246,.08));z-index:-1}
+.device-stage{position:relative;width:100%;max-width:380px;height:330px}
+.device{
+  position:absolute;border-radius:22px;background:var(--panel);border:1px solid var(--line);
+  box-shadow:var(--shadow-lg);padding:14px 12px;display:flex;flex-direction:column;gap:9px;
+  animation:float 7s ease-in-out infinite;
+}
+.device .dev-title{font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--ink-3)}
+.device .bars{display:flex;align-items:flex-end;gap:3px;height:38px}
+.device .bars i{display:block;flex:1;border-radius:3px;background:var(--grad);opacity:.85;animation:eq 1.4s ease-in-out infinite}
+.device .bars i:nth-child(1){height:36%;animation-delay:0s}
+.device .bars i:nth-child(2){height:64%;animation-delay:.12s}
+.device .bars i:nth-child(3){height:92%;animation-delay:.24s}
+.device .bars i:nth-child(4){height:52%;animation-delay:.36s}
+.device .bars i:nth-child(5){height:74%;animation-delay:.48s}
+.device .dim{font-size:8px;color:var(--ink-3);font-family:var(--mono)}
+.device-a{width:184px;left:0;top:24px;z-index:3;animation-delay:.2s}
+.device-b{width:168px;right:6px;top:0;z-index:2;opacity:.96}
+.device-c{width:172px;right:0;bottom:6px;z-index:1;opacity:.9;animation-delay:.6s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes eq{0%,100%{transform:scaleY(.55)}50%{transform:scaleY(1)}}
+.sync-chip{
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);z-index:4;
+  display:flex;align-items:center;gap:.45rem;padding:.5rem .9rem;border-radius:var(--pill);
+  background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm);
+  font-size:.72rem;font-weight:600;color:var(--ink-2);white-space:nowrap;
+}
+.sync-chip b{color:var(--brand-ink);font-variant-numeric:tabular-nums}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.ring{position:absolute;left:50%;top:46%;width:260px;height:260px;margin:-130px 0 0 -130px;border-radius:50%;border:1px dashed rgba(91,75,255,.28);animation:spin 26s linear infinite}
+.ring::after{content:"";position:absolute;left:50%;top:-4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--brand)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* sections */
+section{padding:clamp(46px,6vw,76px) 0;border-top:1px solid var(--line)}
+.section-head{max-width:640px;margin-bottom:clamp(26px,4vw,44px)}
+.section-head .kicker{font-size:.72rem;font-weight:700;letter-spacing:.18em;color:var(--brand);text-transform:uppercase}
+.section-head h2{margin:.55rem 0 .7rem;font-size:clamp(1.7rem,3.4vw,2.4rem);line-height:1.2;letter-spacing:-.02em}
+.section-head p{color:var(--ink-2);font-size:.98rem}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:step}
+.step{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px 20px 22px;box-shadow:var(--shadow-sm);transition:transform .4s var(--ease),border-color .3s}
+.step:hover{transform:translateY(-3px);border-color:var(--line-strong)}
+.step .num{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--brand-soft);color:var(--brand-ink);font-weight:700;font-size:.9rem;font-family:var(--mono)}
+.step h3{margin:14px 0 6px;font-size:1.02rem}
+.step p{color:var(--ink-3);font-size:.86rem;line-height:1.75}
+.step code{font-family:var(--mono);font-size:.8em;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:1px 5px}
+
+/* features */
+.features{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.feature{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--shadow-sm);transition:transform .4s var(--ease),border-color .3s}
+.feature:hover{transform:translateY(-3px);border-color:var(--line-strong)}
+.feature .ico{width:42px;height:42px;border-radius:13px;background:var(--brand-soft);display:grid;place-items:center;color:var(--brand)}
+.feature .ico svg{width:21px;height:21px}
+.feature h3{margin:14px 0 6px;font-size:1.02rem}
+.feature p{color:var(--ink-3);font-size:.88rem;line-height:1.78}
+
+/* download */
+.download-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;align-items:stretch}
+.dl-card,.qr-card{background:var(--panel);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow-lg);padding:clamp(20px,3vw,30px)}
+.dl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.dl-head h3{font-size:1.25rem;letter-spacing:-.01em}
+.dl-head .ver{font-size:.7rem;font-weight:700;color:var(--brand-ink);background:var(--brand-soft);padding:.28rem .6rem;border-radius:var(--pill)}
+.dl-sub{margin-top:6px;color:var(--ink-3);font-size:.85rem}
+.specs{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 18px;margin:20px 0 18px;padding:0;list-style:none}
+.specs div{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.specs dt{font-size:.7rem;color:var(--ink-3)}
+.specs dd{font-size:.86rem;font-weight:600;color:var(--ink);margin-top:2px;font-family:var(--mono)}
+.hash{margin-top:14px;background:var(--panel-2);border:1px dashed var(--line-strong);border-radius:12px;padding:11px 13px}
+.hash-label{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.72rem;color:var(--ink-3)}
+.hash-copy{font-size:.7rem;font-weight:700;color:var(--brand-ink);padding:.2rem .55rem;border-radius:var(--pill);background:var(--brand-soft)}
+.hash code{display:block;margin-top:7px;font-family:var(--mono);font-size:.7rem;line-height:1.7;color:var(--ink-2);word-break:break-all}
+.dl-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.qr-card{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px}
+.qr-card img{width:168px;height:168px;padding:10px;background:#fff;border-radius:18px;border:1px solid var(--line)}
+.qr-copy{display:flex;flex-direction:column;gap:2px}
+.qr-copy b{font-size:.9rem}
+.qr-copy span{font-size:.74rem;color:var(--ink-3)}
+.note{margin-top:14px;font-size:.76rem;color:var(--ink-3);line-height:1.7}
+
+/* faq */
+.faq{display:grid;gap:10px;max-width:860px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:0 18px;transition:border-color .3s}
+details[open]{border-color:var(--line-strong)}
+summary{list-style:none;cursor:pointer;padding:16px 0;font-weight:600;font-size:.94rem;display:flex;align-items:center;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:1.1rem;color:var(--ink-3);transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 0 16px;color:var(--ink-2);font-size:.88rem;line-height:1.8}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:34px 0 44px;color:var(--ink-3);font-size:.8rem}
+.foot-wrap{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:center;justify-content:space-between}
+.foot-links{display:flex;flex-wrap:wrap;gap:18px}
+.foot-links a:hover{color:var(--ink)}
+.foot-note{max-width:640px;line-height:1.75}
+.foot-note code{font-family:var(--mono);font-size:.92em;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:1px 4px}
+
+@media (max-width:920px){
+  .hero-grid{grid-template-columns:1fr;gap:36px}
+  .sync-visual{order:-1;min-height:310px}
+  .device-stage{max-width:340px;height:300px}
+  .download-grid{grid-template-columns:1fr}
+  .features{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  .shell{width:calc(100% - 36px)}
+  .nav-links{display:none}
+  .nav-wrap{height:64px}
+  .steps{grid-template-columns:1fr}
+  .device-a{width:170px}
+  .device-b{width:150px;right:0}
+  .device-c{width:156px;right:0}
+  .specs{grid-template-columns:1fr}
+  .qr-card{flex-direction:row;justify-content:flex-start;text-align:left;gap:16px}
+  .qr-card img{width:126px;height:126px;flex:none}
+  .qr-copy{display:flex;flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要内容</a>
+
+<header class="site-header" id="siteHeader">
+  <div class="shell nav-wrap">
+    <a class="brand" href="#top" aria-label="音频同步器 首页">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><g fill="#fff"><rect x="5" y="10" width="2.4" height="4" rx="1.2"/><rect x="10.8" y="6" width="2.4" height="12" rx="1.2"/><rect x="16.6" y="8.5" width="2.4" height="7" rx="1.2"/></g></svg>
+      </span>
+      <span class="brand-text"><b>音频同步器</b><small>AUDIOSYNC</small></span>
+    </a>
+    <nav class="nav-links" aria-label="页面导航">
+      <a href="#how">使用方式</a>
+      <a href="#features">功能</a>
+      <a href="#download">下载</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn theme-btn" id="themeToggle" type="button" aria-label="切换深浅色">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
+      </button>
+      <a class="btn btn-primary nav-cta" href="audiosync-1.0.0.apk" download>下载 APK</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="shell hero-grid">
+      <div>
+        <span class="eyebrow"><span class="dot"></span>局域网 · 多设备同步播放</span>
+        <h1>让每台设备，<br><span class="grad-text">同时响起</span></h1>
+        <p class="lead">一台手机创建房间并选好音频，其它设备加入后自动接收文件，在<strong>同一时刻</strong>按下播放。时钟校准加上本机毫秒级微调，让房间、客厅与阳台连成一套音响。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="audiosync-1.0.0.apk" download>
+            下载安卓版
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#how">看看怎么用</a>
+        </div>
+        <ul class="hero-meta">
+          <li>Android 8.0+</li>
+          <li>约 3.9 MB</li>
+          <li>无需账号</li>
+          <li>局域网直传</li>
+        </ul>
+        <p class="trust-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5.5c0 4.3 2.9 7.6 7 9.5 4.1-1.9 7-5.2 7-9.5V6l-7-3z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>
+          音频只在同一 Wi-Fi 内传输，不经过任何云端服务器。
+        </p>
+      </div>
+
+      <div class="sync-visual" aria-hidden="true">
+        <div class="glow"></div>
+        <div class="device-stage">
+          <div class="ring"></div>
+          <div class="device device-a">
+            <span class="dev-title">主机 · 客厅</span>
+            <div class="bars"><i></i><i></i><i></i><i></i><i></i></div>
+            <span class="dim">PLAYING · 00:42</span>
+          </div>
+          <div class="device device-b">
+            <span class="dev-title">卧室</span>
+            <div class="bars"><i></i><i></i><i></i><i></i><i></i></div>
+            <span class="dim">SYNCED · +8ms</span>
+          </div>
+          <div class="device device-c">
+            <span class="dev-title">书房</span>
+            <div class="bars"><i></i><i></i><i></i><i></i><i></i></div>
+            <span class="dim">SYNCED · −5ms</span>
+          </div>
+          <div class="sync-chip"><span class="pulse-dot"></span>3 台设备 · 偏差 <b>12 ms</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="shell">
+      <div class="section-head">
+        <span class="kicker">How it works</span>
+        <h2>三步，把多台手机变成一套音响</h2>
+        <p>不需要注册、不需要登录，也不需要把音乐传到网盘。设备连上同一个 Wi-Fi 就能开始。</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="num">01</span>
+          <h3>主机创建房间</h3>
+          <p>打开「创建房间」，选择一段本地音频。应用会自动读取音频、开启房间，并在局域网内广播。</p>
+        </div>
+        <div class="step">
+          <span class="num">02</span>
+          <h3>其它设备加入</h3>
+          <p>在「加入房间」页自动发现附近房间，也可手动输入主机 IP。加入后自动下载音频并完成时钟校准。</p>
+        </div>
+        <div class="step">
+          <span class="num">03</span>
+          <h3>一起按下播放</h3>
+          <p>主机点击「开始同步播放」，所有设备在同一时刻开始。若有细微先后，用本机微调滑块修正。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="shell">
+      <div class="section-head">
+        <span class="kicker">Features</span>
+        <h2>为「同时」而做的细节</h2>
+        <p>同步播放的难点不在播放，而在时间。我们从时钟、传输到播放调度都做了针对性处理。</p>
+      </div>
+      <div class="features">
+        <article class="feature">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><path d="M12 7.5V12l3 1.8"/></svg></span>
+          <h3>时钟对齐，误差可测</h3>
+          <p>设备连接后每秒进行多次往返测时，取往返延迟最小的样本估算时钟偏差；播放时持续比对进度并自动校正漂移。</p>
+        </article>
+        <article class="feature">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9z"/><path d="M8 10.5h8M8 14h5"/></svg></span>
+          <h3>音频局域网直传</h3>
+          <p>主机开启独立传输端口，加入的设备自动拉取同一份音频文件。无需提前在每台设备上准备音乐。</p>
+        </article>
+        <article class="feature">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h3M17 12h3M7 8v8M17 8v8M12 5v14"/></svg></span>
+          <h3>本机毫秒级微调</h3>
+          <p>不同设备的扬声器与系统音频延迟各不相同。每台设备可独立微调 ±400 毫秒，听到偏早或偏晚都能立刻修正。</p>
+        </article>
+        <article class="feature">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5.5c0 4.3 2.9 7.6 7 9.5 4.1-1.9 7-5.2 7-9.5V6l-7-3z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></span>
+          <h3>无账号、无云端</h3>
+          <p>应用只为局域网通信申请网络权限，音频与设备名不会上传到互联网，也没有账号体系与统计 SDK。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="download">
+    <div class="shell">
+      <div class="section-head">
+        <span class="kicker">Download</span>
+        <h2>下载安装包</h2>
+        <p>下载后可直接安装；如浏览器提示「未知来源」，请在设置中允许安装来自浏览器的应用。</p>
+      </div>
+      <div class="download-grid">
+        <div class="dl-card">
+          <div class="dl-head">
+            <div>
+              <h3>音频同步器 for Android</h3>
+              <p class="dl-sub">局域网多设备同步播放 · 稳定版</p>
+            </div>
+            <span class="ver">v1.0.0</span>
+          </div>
+          <dl class="specs">
+            <div><dt>文件名称</dt><dd>audiosync-1.0.0.apk</dd></div>
+            <div><dt>文件大小</dt><dd>3.9 MB</dd></div>
+            <div><dt>系统要求</dt><dd>Android 8.0+</dd></div>
+            <div><dt>更新日期</dt><dd>2026-11-08</dd></div>
+          </dl>
+          <div class="hash">
+            <div class="hash-label">
+              <span>SHA-256 校验值</span>
+              <button class="hash-copy" id="copyHash" type="button">复制</button>
+            </div>
+            <code id="hashValue">cd6e0589f834df120b046dacc6ba0bed623a603fafa1d4322512741c5633fd61</code>
+          </div>
+          <div class="dl-actions">
+            <a class="btn btn-primary btn-lg" href="audiosync-1.0.0.apk" download>
+              下载 APK
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg>
+            </a>
+            <a class="btn btn-ghost btn-lg" href="../">返回下载中心</a>
+          </div>
+          <p class="note">适用于 Android 8.0 及以上版本的手机；安装包使用开发者证书签名，可用上方 SHA-256 校验文件是否完整。</p>
+        </div>
+        <aside class="qr-card">
+          <img src="qr.svg" alt="扫描二维码下载音频同步器 APK" width="168" height="168">
+          <div class="qr-copy">
+            <b>手机扫码下载</b>
+            <span>用系统相机扫描二维码即可打开下载链接</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="shell">
+      <div class="section-head">
+        <span class="kicker">FAQ</span>
+        <h2>常见问题</h2>
+        <p>关于同步精度、网络环境与权限，通常会被问到这些。</p>
+      </div>
+      <div class="faq">
+        <details open>
+          <summary>同步精度能到多少？</summary>
+          <p>在正常的家用 Wi-Fi 环境下，设备之间的时钟偏差通常在十几毫秒量级，播放起点误差可控制在几十毫秒以内，人耳几乎无法分辨。若某台设备扬声器本身延迟较大，可用播放器里的「本机微调」滑块单独修正。</p>
+        </details>
+        <details>
+          <summary>所有设备都需要装同一个 App 吗？</summary>
+          <p>是的。主机与加入的设备都需要安装音频同步器。主机负责选音频、发指令，加入的设备负责接收文件并按同一时间轴播放。</p>
+        </details>
+        <details>
+          <summary>为什么找不到房间？</summary>
+          <p>请依次确认：两台设备连接的是同一个 Wi-Fi；主机已点击「创建房间」并选好音频；路由器没有开启「AP 隔离」或「访客网络」隔离。部分路由器会拦截广播，此时可在加入页点击「手动输入主机 IP」，直接连接主机地址。</p>
+        </details>
+        <details>
+          <summary>音频文件会上传到服务器吗？</summary>
+          <p>不会。音频由主机通过局域网直接传输给加入的设备，应用没有云端服务，也不会上传任何音频或设备信息。</p>
+        </details>
+        <details>
+          <summary>支持哪些音频格式？</summary>
+          <p>取决于系统解码能力，常见 MP3、M4A/AAC、WAV、FLAC、OGG 均可播放。若选择后无法播放，建议转换为 MP3 再试。</p>
+        </details>
+        <details>
+          <summary>播放时锁屏会中断吗？</summary>
+          <p>为保持同步，应用在播放期间会保持屏幕常亮。锁屏或切到后台时，部分系统可能暂停播放，建议在播放期间保持应用在前台。</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="shell foot-wrap">
+    <div class="foot-note">
+      <p>音频同步器 · 局域网多设备同步播放工具。页面与安装包由 NEWCYR 提供，下载后可对照 SHA-256 校验。</p>
+      <p style="margin-top:6px">需要帮助？返回 <a href="../" style="color:var(--brand-ink);font-weight:600">下载中心</a> 查看其它应用。</p>
+    </div>
+    <div class="foot-links">
+      <a href="#top">回到顶部</a>
+      <a href="../tq/">拾墨</a>
+      <a href="../todox/">TodoX</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var stored = null;
+  try { stored = localStorage.getItem('audiosync-theme'); } catch (e) {}
+  if (stored === 'dark' || (!stored && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    root.setAttribute('data-theme', 'dark');
+  }
+  var toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', function(){
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('audiosync-theme', next); } catch (e) {}
+    });
+  }
+  var header = document.getElementById('siteHeader');
+  function onScroll(){
+    if (window.scrollY > 8) { header.classList.add('scrolled'); }
+    else { header.classList.remove('scrolled'); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  var copyBtn = document.getElementById('copyHash');
+  var hashValue = document.getElementById('hashValue');
+  if (copyBtn && hashValue) {
+    copyBtn.addEventListener('click', function(){
+      var text = hashValue.textContent.trim();
+      function done(ok){
+        copyBtn.textContent = ok ? '已复制' : '复制失败';
+        setTimeout(function(){ copyBtn.textContent = '复制'; }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){ done(true); }, function(){ fallback(); });
+      } else {
+        fallback();
+      }
+      function fallback(){
+        var area = document.createElement('textarea');
+        area.value = text;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(area);
+        done(ok);
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
