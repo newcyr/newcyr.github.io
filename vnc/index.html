@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="300">
+<title>Windows Server 2025 · VNC</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         background:#0b1020; color:#e6ecff; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif; }
+  .card { width:min(680px,92vw); background:#131a2e; border:1px solid #24304d; border-radius:18px; padding:34px 32px; box-shadow:0 24px 60px rgba(0,0,0,.45); }
+  h1 { font-size:20px; margin:0 0 6px; font-weight:650; letter-spacing:.2px; }
+  .sub { color:#8ea0c9; font-size:13px; margin-bottom:22px; }
+  .urlbox { display:flex; gap:10px; background:#0b1224; border:1px solid #2a3a5e; border-radius:12px; padding:14px 14px; align-items:center; }
+  .urlbox a { color:#6ea8ff; text-decoration:none; word-break:break-all; font-size:14px; line-height:1.5; flex:1; }
+  .urlbox a:hover { text-decoration:underline; }
+  button { background:#2b6cff; color:#fff; border:0; border-radius:9px; padding:10px 16px; font-size:13px; cursor:pointer; white-space:nowrap; }
+  button:hover { background:#3d7bff; }
+  .row { margin-top:18px; display:flex; justify-content:space-between; font-size:12px; color:#7d8db4; gap:12px; flex-wrap:wrap; }
+  .ok { color:#43d17a; }
+  .btn2 { display:inline-block; margin-top:22px; background:#1b2a4a; color:#cfe0ff; border:1px solid #2c4270; padding:11px 18px; border-radius:10px; text-decoration:none; font-size:13px; }
+  .btn2:hover { background:#22355c; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Windows Server 2025 · 实时控制台</h1>
+    <div class="sub">每次页面加载/刷新都会获取当前隧道地址，自动刷新间隔 5 分钟。</div>
+    <div class="urlbox">
+      <a id="u" href="http://16.176.193.163:23180/vnc.html?autoconnect=1&resize=scale&path=websocket" target="_blank" rel="noopener">http://16.176.193.163:23180/vnc.html?autoconnect=1&resize=scale&path=websocket</a>
+      <button onclick="copyUrl()" id="b">复制</button>
+    </div>
+    <a class="btn2" href="http://16.176.193.163:23180/vnc.html?autoconnect=1&resize=scale&path=websocket" target="_blank" rel="noopener">打开 VNC 控制台</a>
+    <div class="row">
+      <span>RDP：16.176.193.163:23181</span>
+      <span id="ts">更新时间：2026-11-16 12:33:46</span>
+    </div>
+  </div>
+<script>
+function copyUrl(){
+  const t=document.getElementById('u').innerText.trim();
+  const done=()=>{const b=document.getElementById('b');b.innerText='已复制';setTimeout(()=>b.innerText='复制',1500);};
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(done).catch(()=>fallback(t,done));}
+  else{fallback(t,done);}
+}
+function fallback(t,cb){
+  const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();try{document.execCommand('copy');cb();}catch(e){}document.body.removeChild(ta);
+}
+fetch('url.json?t='+Date.now()).then(r=>r.json()).then(d=>{
+  if(!d.vnc_url) return;
+  const a=document.getElementById('u');
+  a.href=d.vnc_url; a.innerText=d.vnc_url;
+  document.getElementById('ts').innerText='更新时间：'+d.updated;
+}).catch(()=>{});
+</script>
+</body>
+</html>
