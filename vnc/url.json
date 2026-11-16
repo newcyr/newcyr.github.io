@@ -4,6 +4,6 @@
   "rdp_port": 23181,
   "vnc_url": "http://16.176.193.163:23180/vnc.html?autoconnect=1&resize=scale&path=websocket",
   "rdp": "16.176.193.163:23181",
-  "updated": "2026-11-16 14:25:18",
-  "timestamp": 1794810318
+  "updated": "2026-11-16 15:20:34",
+  "timestamp": 1794813634
 }
