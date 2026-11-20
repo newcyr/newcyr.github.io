@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>下载 · 班级管理小师</title>
+<style>
+  :root{
+    --accent:#2F6FED; --accent-2:#1B4FC4; --ink:#111827; --muted:#667085;
+    --line:#E5EAF3; --card:#FFFFFF; --bg:#F6F8FC; --ok:#0E9F6E; --warn:#B54708;
+    --shadow:0 10px 30px rgba(17,24,39,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.7 "Microsoft YaHei","PingFang SC",system-ui,-apple-system,"Segoe UI",sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  nav{position:sticky;top:0;z-index:10;background:rgba(246,248,252,.92);backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#2F6FED,#6D3BEF);display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700}
+  .nav-links{display:flex;gap:18px;font-size:14px}
+  .nav-links a{color:#475467;text-decoration:none}
+  .nav-links a:hover{color:var(--accent)}
+
+  .hero{padding:54px 0 10px;text-align:center}
+  .hero h1{font-size:38px;line-height:1.25;margin:0 0 12px;letter-spacing:.5px}
+  .hero p{color:var(--muted);max-width:720px;margin:0 auto;font-size:16px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;color:#475467}
+
+  .grid{display:grid;grid-template-columns:1.35fr .8fr;gap:20px;margin:28px 0 40px}
+  @media (max-width:880px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow)}
+  .card h2{font-size:18px;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 16px}
+
+  .seg{display:flex;flex-wrap:wrap;gap:8px;background:#F1F4FA;border:1px solid var(--line);border-radius:12px;padding:5px;margin-bottom:16px}
+  .seg button{flex:1 1 130px;border:0;background:transparent;color:#475467;padding:9px 10px;border-radius:9px;font-size:14px;cursor:pointer;font-family:inherit}
+  .seg button.active{background:#fff;color:var(--accent-2);font-weight:700;box-shadow:0 1px 4px rgba(17,24,39,.12)}
+  .urlbox{display:flex;gap:8px;align-items:center;background:#F8FAFE;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+  .urlbox code{flex:1;font-family:Consolas,Menlo,monospace;font-size:12.5px;color:#344054;word-break:break-all}
+  .btn{appearance:none;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:10px;padding:11px 18px;font-size:15px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
+  .btn:hover{filter:brightness(.96)}
+  .btn.big{width:100%;justify-content:center;padding:14px 18px;font-size:16px;font-weight:700}
+  .btn.ghost{background:#fff;color:var(--accent)}
+  .btn.small{padding:8px 12px;font-size:13px;border-radius:9px}
+  .meta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:13px;margin-top:12px;flex-wrap:wrap}
+  .sha{font-family:Consolas,Menlo,monospace;font-size:12px;word-break:break-all;color:#667085;background:#F8FAFE;border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin-top:12px}
+  .hint{font-size:13px;color:var(--muted);margin-top:10px}
+  .hint b{color:var(--warn);font-weight:600}
+
+  .side .item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px dashed var(--line)}
+  .side .item:last-child{border-bottom:0}
+  .side .item .name{font-size:14px;font-weight:600}
+  .side .item .desc{font-size:12.5px;color:var(--muted)}
+  .side a{font-size:13px;text-decoration:none}
+
+  section.plain{margin:0 0 40px}
+  .plain h2{font-size:20px;margin:0 0 6px}
+  .plain .sub{margin-bottom:18px}
+  .links{display:grid;gap:10px}
+  .linkrow{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 14px;flex-wrap:wrap}
+  .linkrow .tag{font-size:12px;color:var(--muted);min-width:96px}
+  .linkrow code{flex:1 1 340px;font-family:Consolas,Menlo,monospace;font-size:12.5px;color:#344054;word-break:break-all;background:#F8FAFE;border-radius:8px;padding:8px 10px}
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:880px){.features{grid-template-columns:1fr 1fr}}
+  @media (max-width:560px){.features{grid-template-columns:1fr}.hero h1{font-size:29px}nav .nav-links{display:none}}
+  .feature{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .feature .ico{width:34px;height:34px;border-radius:9px;background:#EAF0FF;color:var(--accent-2);display:grid;place-items:center;margin-bottom:10px;font-size:16px}
+  .feature h3{font-size:15px;margin:0 0 4px}
+  .feature p{font-size:13px;color:var(--muted);margin:0}
+  footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:13px;text-align:center}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#101828;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><span class="logo">班</span>班级管理小师</div>
+    <div class="nav-links">
+      <a href="kj.html">使用说明</a>
+      <a href="wb/">课程表 JSON</a>
+      <a href="sdk.md">JSON 文档</a>
+      <a href="https://github.com/newcyr/newcyr.github.io" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header class="hero">
+    <h1>上课铃，到点自动响</h1>
+    <p>面向教室一体机的 Windows 桌面小工具：按课程表提前 3 分钟响铃、全屏置顶提醒、按科目自动登录希沃，非上课时间全程静默。</p>
+    <div class="chips">
+      <span class="chip">v1.0.0</span>
+      <span class="chip">Windows 10 / 11 x64</span>
+      <span class="chip">单文件 · 无需安装 .NET</span>
+      <span class="chip">58.9 MB</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>下载安装包</h2>
+      <p class="sub">选择下载线路，双击安装即可；安装时可自定义目录并创建桌面快捷方式。</p>
+
+      <div class="seg" id="mirrorSeg">
+        <button class="active" data-key="pages">本站直连</button>
+        <button data-key="ghproxy">gh-proxy 镜像</button>
+        <button data-key="ghproxy2">ghproxy.net 镜像</button>
+        <button data-key="github">GitHub 原站</button>
+      </div>
+
+      <div class="urlbox">
+        <code id="dlUrl">https://newcyr.github.io/class/downloads/ClassManagerSetup.exe</code>
+        <button class="btn ghost small" id="copyUrl">复制</button>
+      </div>
+
+      <a class="btn big" id="dlBtn" href="downloads/ClassManagerSetup.exe" download>下载 ClassManagerSetup.exe</a>
+
+      <div class="meta">
+        <span>版本 1.0.0 · 58.9 MB</span>
+        <span>Windows 10 / 11（64 位）</span>
+        <span>Inno Setup 安装包</span>
+      </div>
+      <div class="sha">SHA256：C3BEEAC22DC420228BCE21B3BA8787ABA4101C61323BFACBC26B2640FEBA4499</div>
+      <p class="hint">若浏览器提示“不常见的下载”，请选择保留；<b>GitHub 原站在部分地区可能无法直接访问</b>，建议切换镜像线路。</p>
+    </section>
+
+    <aside class="card side">
+      <h2>其他文件</h2>
+      <p class="sub">配合应用使用的说明与配置文件。</p>
+      <div class="item">
+        <div><div class="name">课程表 wb.json</div><div class="desc">周一至周六 + 周日，提前 3 分钟</div></div>
+        <a class="btn ghost small" href="wb/">查看下载页</a>
+      </div>
+      <div class="item">
+        <div><div class="name">使用说明</div><div class="desc">安装、闹钟、希沃、常见问题</div></div>
+        <a class="btn ghost small" href="kj.html">打开</a>
+      </div>
+      <div class="item">
+        <div><div class="name">JSON 字段文档</div><div class="desc">sdk.md · 字段与示例</div></div>
+        <a class="btn ghost small" href="sdk.md">查看</a>
+      </div>
+      <div class="item">
+        <div><div class="name">课程表 JSON 直链</div><div class="desc">可复制到应用导入</div></div>
+        <button class="btn ghost small" data-copy="https://newcyr.github.io/class/wb.json">复制链接</button>
+      </div>
+    </aside>
+  </div>
+
+  <section class="plain">
+    <h2>GitHub 下载链接（可自行加速）</h2>
+    <p class="sub">如果你有自己的加速工具，可直接使用下面的原始地址。</p>
+    <div class="links">
+      <div class="linkrow">
+        <span class="tag">Release 安装包</span>
+        <code>https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe</code>
+        <button class="btn ghost small" data-copy="https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe">复制</button>
+      </div>
+      <div class="linkrow">
+        <span class="tag">gh-proxy 加速</span>
+        <code>https://gh-proxy.org/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe</code>
+        <button class="btn ghost small" data-copy="https://gh-proxy.org/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe">复制</button>
+      </div>
+      <div class="linkrow">
+        <span class="tag">课表 JSON 原站</span>
+        <code>https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json</code>
+        <button class="btn ghost small" data-copy="https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json">复制</button>
+      </div>
+      <div class="linkrow">
+        <span class="tag">课表 JSON 镜像</span>
+        <code>https://gh-proxy.org/https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json</code>
+        <button class="btn ghost small" data-copy="https://gh-proxy.org/https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json">复制</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="plain">
+    <h2>它做什么</h2>
+    <p class="sub">为教室场景做的取舍：只在上课前提醒，其余时间绝不打扰。</p>
+    <div class="features">
+      <div class="feature"><div class="ico">铃</div><h3>提前响铃</h3><p>每节课按设置提前几分钟响铃，默认 3 分钟，铃声约 15 秒。</p></div>
+      <div class="feature"><div class="ico">屏</div><h3>全屏提醒</h3><p>到点全屏置顶遮罩，显示科目与提示语，点击提前关闭，15 秒后自动关闭。</p></div>
+      <div class="feature"><div class="ico">课</div><h3>多课程表</h3><p>周一至周日可映射不同课程表，手动填写与 JSON 导入字段一致。</p></div>
+      <div class="feature"><div class="ico">希</div><h3>希沃自动登录</h3><p>按当堂科目切换希沃账号，密码 DPAPI 加密保存，失败静默。</p></div>
+      <div class="feature"><div class="ico">启</div><h3>开机自启</h3><p>写入当前用户启动项，静默驻留托盘，不弹窗打扰。</p></div>
+      <div class="feature"><div class="ico">静</div><h3>非上课静默</h3><p>没有课程的时间里不响铃、不弹窗、不抢占屏幕。</p></div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">班级管理小师 · v1.0.0 · 仅用于教室上课提醒</div>
+</footer>
+<div class="toast" id="toast">已复制</div>
+
+<script>
+(function(){
+  var urls={
+    pages:'https://newcyr.github.io/class/downloads/ClassManagerSetup.exe',
+    ghproxy:'https://gh-proxy.org/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe',
+    ghproxy2:'https://ghproxy.net/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe',
+    github:'https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe'
+  };
+  var current='pages';
+  var code=document.getElementById('dlUrl');
+  var btn=document.getElementById('dlBtn');
+  var seg=document.getElementById('mirrorSeg');
+  function select(key){
+    current=key;
+    code.textContent=urls[key];
+    btn.href=urls[key];
+    var items=seg.querySelectorAll('button');
+    for(var i=0;i<items.length;i++){
+      items[i].classList.toggle('active',items[i].getAttribute('data-key')===key);
+    }
+  }
+  seg.addEventListener('click',function(e){
+    var b=e.target.closest('button[data-key]');
+    if(b) select(b.getAttribute('data-key'));
+  });
+  btn.addEventListener('click',function(){
+    showToast('已开始下载');
+  });
+
+  var toast=document.getElementById('toast'),timer=null;
+  function showToast(msg){
+    toast.textContent=msg||'已复制';toast.classList.add('show');
+    clearTimeout(timer);timer=setTimeout(function(){toast.classList.remove('show')},1600);
+  }
+  function legacy(text){
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.top='-1000px';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');showToast('已复制')}catch(e){showToast('请手动复制')}
+    document.body.removeChild(ta);
+  }
+  function copy(text){
+    if(navigator.clipboard&&window.isSecureContext){
+      navigator.clipboard.writeText(text).then(function(){showToast('已复制')},function(){legacy(text)});
+    }else{legacy(text)}
+  }
+  var copyBtns=document.querySelectorAll('[data-copy]');
+  for(var i=0;i<copyBtns.length;i++){
+    copyBtns[i].addEventListener('click',function(){copy(this.getAttribute('data-copy'))});
+  }
+  document.getElementById('copyUrl').addEventListener('click',function(){copy(urls[current])});
+  select('pages');
+})();
+</script>
+</body>
+</html>
