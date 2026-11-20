@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#060b18">
+<title>班级管理小师 · 上课全屏提醒与希沃自动登录</title>
+<meta name="description" content="班级管理小师：后台托盘常驻的 Windows 上课提醒工具。多课程表按周几自动切换，提前全屏提醒、约 15 秒铃声，支持自定义 MP3、独立闹钟与按科目希沃自动登录。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffd24d'/%3E%3Cpath d='M32 14a12 12 0 0 0-12 12v8l-4 8h32l-4-8v-8a12 12 0 0 0-12-12Z' fill='none' stroke='%230b1530' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M26 46a6 6 0 0 0 12 0' fill='none' stroke='%230b1530' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+/* ============ 设计变量 ============ */
+:root{
+  --bg:#060b18;
+  --panel:rgba(15,27,51,.62);
+  --line:rgba(255,255,255,.09);
+  --line-strong:rgba(255,255,255,.17);
+  --text:#eef3ff;
+  --muted:#9aa9c4;
+  --muted-2:#7f90ad;
+  --accent:#ffd24d;
+  --accent-soft:#ffe08a;
+  --blue:#5b9dff;
+  --green:#6ee7a8;
+  --red:#ff8a8a;
+  --radius:18px;
+  --shadow:0 36px 70px -34px rgba(0,0,0,.9);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  font-family:"Microsoft YaHei UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--text);
+  line-height:1.7;
+  overflow-x:hidden;
+  background:
+    radial-gradient(1100px 620px at 80% -12%, rgba(91,157,255,.22), transparent 62%),
+    radial-gradient(900px 540px at 4% 6%, rgba(255,210,77,.10), transparent 64%),
+    linear-gradient(180deg,#060b18 0%,#081124 46%,#060b18 100%);
+  background-attachment:fixed;
+}
+/* 背景网格，仅顶部区域可见 */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse 78% 58% at 50% 0%,#000 18%,transparent 76%);
+  mask-image:radial-gradient(ellipse 78% 58% at 50% 0%,#000 18%,transparent 76%);
+  opacity:.65;
+}
+svg{display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+::selection{background:rgba(255,210,77,.35);color:#fff}
+:focus-visible{outline:2px solid rgba(255,210,77,.75);outline-offset:3px}
+
+/* ============ 通用布局 ============ */
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 22px}
+.section{position:relative;z-index:1;padding:86px 0;scroll-margin-top:84px}
+#top{scroll-margin-top:84px}
+.section-head{max-width:660px;margin-bottom:38px}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  margin:0 0 12px;
+  font-size:12.5px;font-weight:800;letter-spacing:.2em;
+  color:var(--accent);text-transform:uppercase;
+}
+.eyebrow::before{content:"";width:22px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--accent),rgba(255,210,77,.2))}
+.section-head h2{
+  margin:0;
+  font-size:clamp(1.7rem,3.1vw,2.4rem);
+  line-height:1.28;letter-spacing:-.02em;font-weight:800;
+}
+.section-head .sub{margin:14px 0 0;font-size:15.5px;color:var(--muted);line-height:1.85}
+
+/* ============ 按钮 ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:13px 22px;border:1px solid transparent;border-radius:13px;
+  font-size:15px;font-weight:700;line-height:1;white-space:nowrap;
+  cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease,color .18s ease;
+}
+.btn svg{width:18px;height:18px;flex:none}
+.btn-primary{
+  background:linear-gradient(180deg,#ffe17a,#ffc93a);
+  color:#141c30;
+  box-shadow:0 14px 32px -14px rgba(255,203,58,.85),inset 0 1px 0 rgba(255,255,255,.6);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 40px -14px rgba(255,203,58,.95)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:rgba(255,255,255,.045);border-color:var(--line-strong);color:var(--text)}
+.btn-ghost:hover{background:rgba(255,255,255,.085);transform:translateY(-2px)}
+.btn-sm{padding:10px 16px;font-size:13.5px;border-radius:11px}
+.btn-copy{
+  padding:10px 14px;border-radius:11px;font-size:13px;
+  background:rgba(255,255,255,.05);border-color:var(--line-strong);color:#cfdcf4;
+}
+.btn-copy:hover{border-color:rgba(255,210,77,.5);color:var(--accent)}
+.btn-copy.copied{background:rgba(110,231,168,.14);border-color:rgba(110,231,168,.55);color:var(--green)}
+.btn-copy.failed{background:rgba(255,138,138,.12);border-color:rgba(255,138,138,.5);color:var(--red)}
+.btn-xs{padding:6px 10px;font-size:12px;border-radius:8px}
+
+/* ============ 顶部导航 ============ */
+.site-header{
+  position:sticky;top:0;z-index:60;
+  background:rgba(6,11,24,.66);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid transparent;
+  transition:background .25s ease,border-color .25s ease;
+}
+.site-header.scrolled{background:rgba(6,11,24,.93);border-bottom-color:var(--line)}
+.header-inner{position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;height:68px}
+.brand{display:inline-flex;align-items:center;gap:11px;font-size:17px;font-weight:800;letter-spacing:.01em}
+.brand-mark{
+  width:38px;height:38px;border-radius:12px;flex:none;
+  display:grid;place-items:center;color:#0b1530;
+  background:linear-gradient(145deg,#ffe27a,#ffc534);
+  box-shadow:0 10px 22px -10px rgba(255,201,52,.85);
+}
+.brand-text em{font-style:normal;color:var(--accent)}
+.nav{display:flex;align-items:center;gap:4px}
+.nav a{padding:9px 13px;border-radius:10px;font-size:14.5px;color:#c3cfe5;transition:background .18s ease,color .18s ease}
+.nav a:hover{color:#fff;background:rgba(255,255,255,.07)}
+.nav-toggle{
+  display:none;width:42px;height:42px;border-radius:11px;position:relative;
+  border:1px solid var(--line);background:rgba(255,255,255,.05);cursor:pointer;
+}
+.nav-toggle span{
+  position:absolute;left:12px;width:18px;height:2px;border-radius:2px;
+  background:#dbe6f8;transition:transform .2s ease,opacity .2s ease,top .2s ease;
+}
+.nav-toggle span:nth-child(1){top:14px}
+.nav-toggle span:nth-child(2){top:20px}
+.nav-toggle span:nth-child(3){top:26px}
+.nav-toggle[aria-expanded="true"] span:nth-child(1){top:20px;transform:rotate(45deg)}
+.nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] span:nth-child(3){top:20px;transform:rotate(-45deg)}
+
+/* ============ Hero ============ */
+.hero{position:relative;z-index:1;padding:72px 0 80px}
+.hero-grid{display:grid;grid-template-columns:1.04fr .96fr;gap:56px;align-items:center}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 13px;border-radius:999px;
+  border:1px solid rgba(255,210,77,.28);background:rgba(255,210,77,.08);
+  color:#ffe083;font-size:12.5px;font-weight:700;letter-spacing:.04em;
+}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulseDot 2.6s ease-in-out infinite}
+.hero h1{
+  margin:20px 0 18px;
+  font-size:clamp(2.5rem,5.4vw,4.05rem);
+  line-height:1.08;letter-spacing:-.03em;font-weight:800;
+}
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(120deg,#ffe07a,#ffc22e 58%,#ffe9a8);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.lede{max-width:33em;margin:0;font-size:clamp(15.5px,1.35vw,17.5px);line-height:1.85;color:#a9b8d4}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;list-style:none;margin:26px 0 0;padding:0;font-size:13px;color:#8494b3}
+.hero-meta li{display:flex;align-items:center;gap:7px}
+.hero-meta li::before{content:"";width:5px;height:5px;border-radius:50%;background:rgba(255,210,77,.85)}
+
+/* Hero 右侧：全屏提醒样式预览 */
+.hero-stage{position:relative;display:grid;place-items:center;padding:28px 4px}
+.stage-glow{
+  position:absolute;inset:6% 0;
+  background:radial-gradient(circle at 50% 46%,rgba(91,157,255,.32),rgba(91,157,255,0) 62%);
+  filter:blur(14px);
+  pointer-events:none;
+}
+.alarm-card{
+  position:relative;width:100%;max-width:470px;
+  padding:clamp(20px,3vw,30px);
+  border-radius:22px;border:1px solid rgba(255,210,77,.3);
+  background:radial-gradient(130% 120% at 50% 0%,#1c2f5c 0%,#0b1220 68%);
+  box-shadow:0 40px 80px -34px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.08);
+  animation:floatCard 7s ease-in-out infinite alternate;
+}
+.alarm-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.alarm-chip{
+  font-size:12.5px;font-weight:800;letter-spacing:.22em;color:#151c2c;
+  background:linear-gradient(180deg,#ffe27a,#ffcb3d);
+  padding:7px 13px;border-radius:8px;
+}
+.alarm-time{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;letter-spacing:.12em;color:#9fb0cc}
+.a-line1{margin:0;font-size:clamp(22px,2.4vw,28px);font-weight:800;letter-spacing:.02em}
+.a-line2{margin:8px 0;font-size:clamp(15.5px,1.7vw,19px);font-weight:700;color:#dfe8f8}
+.a-line3{margin:14px 0 0;font-size:clamp(20px,2.1vw,25px);font-weight:800}
+.a-line3 b{color:var(--accent);font-weight:800}
+.a-foot{margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,.09);font-size:11.5px;line-height:1.7;color:#7f90ad}
+.badge{
+  position:absolute;display:inline-flex;align-items:center;gap:7px;
+  padding:8px 13px;border-radius:999px;
+  background:rgba(13,22,42,.94);border:1px solid var(--line-strong);
+  font-size:12.5px;color:#cfdcf4;
+  box-shadow:0 14px 30px -16px rgba(0,0,0,.9);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+}
+.badge i{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(255,210,77,.14)}
+.b1{top:0;left:-4px;animation:floatBadge 5.6s ease-in-out infinite alternate}
+.b2{bottom:8px;right:-4px;animation:floatBadge 6.4s ease-in-out infinite alternate-reverse}
+
+/* ============ 功能卡片 ============ */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feature{
+  position:relative;overflow:hidden;
+  padding:26px 24px;border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(22,36,66,.66),rgba(12,21,40,.6));
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+.feature::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(320px 160px at 100% 0%,rgba(255,210,77,.1),transparent 70%);
+  opacity:0;transition:opacity .25s ease;
+}
+.feature:hover{transform:translateY(-4px);border-color:rgba(255,210,77,.3);box-shadow:0 26px 48px -30px #000}
+.feature:hover::after{opacity:1}
+.f-icon{
+  width:48px;height:48px;border-radius:14px;
+  display:grid;place-items:center;flex:none;color:var(--accent);
+  background:linear-gradient(145deg,rgba(255,210,77,.16),rgba(91,157,255,.1));
+  border:1px solid rgba(255,210,77,.22);
+}
+.f-icon svg{width:23px;height:23px}
+.feature:nth-child(3n+2) .f-icon{
+  color:#a9ccff;border-color:rgba(91,157,255,.26);
+  background:linear-gradient(145deg,rgba(91,157,255,.18),rgba(91,157,255,.06));
+}
+.feature:nth-child(3n) .f-icon{
+  color:#9ff0c2;border-color:rgba(110,231,168,.24);
+  background:linear-gradient(145deg,rgba(110,231,168,.15),rgba(110,231,168,.05));
+}
+.feature h3{margin:18px 0 8px;font-size:16.5px;letter-spacing:.01em}
+.feature p{margin:0;font-size:14px;line-height:1.8;color:#94a3bf}
+
+/* ============ 下载 ============ */
+.dl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.dl-card{
+  padding:22px;border-radius:16px;
+  border:1px solid var(--line);background:rgba(15,27,51,.6);
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+.dl-card:hover{transform:translateY(-3px);border-color:rgba(91,157,255,.34);box-shadow:0 24px 44px -30px #000}
+.dl-card.is-local{
+  border-color:rgba(255,210,77,.36);
+  background:linear-gradient(180deg,rgba(255,210,77,.075),rgba(15,27,51,.66));
+}
+.dl-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.dl-top h3{margin:0;font-size:16px;letter-spacing:.01em}
+.dl-badge{
+  font-size:11px;font-weight:800;letter-spacing:.05em;
+  padding:4px 9px;border-radius:999px;
+  background:rgba(91,157,255,.15);color:#a9ccff;border:1px solid rgba(91,157,255,.3);
+}
+.dl-card.is-local .dl-badge{background:rgba(255,210,77,.16);color:#ffe08a;border-color:rgba(255,210,77,.36)}
+.dl-url{
+  margin:0 0 16px;font-family:ui-monospace,Consolas,"Courier New",monospace;
+  font-size:12px;line-height:1.65;color:#7f90ad;word-break:break-all;
+}
+.dl-actions{display:flex;flex-wrap:wrap;gap:9px}
+
+.raw-box{
+  margin-top:18px;padding:20px 22px;border-radius:16px;
+  border:1px solid var(--line);background:rgba(9,17,34,.72);
+}
+.raw-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.raw-title{font-size:14.5px;font-weight:700}
+.raw-hint{font-size:12px;color:var(--muted-2)}
+.raw-row{display:flex;gap:10px}
+.raw-row input{
+  flex:1;min-width:0;padding:12px 14px;border-radius:11px;
+  border:1px solid var(--line-strong);background:rgba(4,9,20,.86);
+  color:#b9c8e4;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;
+  outline:none;transition:border-color .18s ease,box-shadow .18s ease;
+}
+.raw-row input:focus{border-color:rgba(255,210,77,.55);box-shadow:0 0 0 3px rgba(255,210,77,.1)}
+
+.notice{
+  margin-top:22px;padding:22px 24px;border-radius:16px;
+  border:1px solid rgba(255,210,77,.22);border-left:3px solid var(--accent);
+  background:linear-gradient(180deg,rgba(255,210,77,.06),rgba(255,210,77,.02));
+}
+.notice h3{margin:0 0 10px;font-size:14.5px;letter-spacing:.02em;color:#ffe08a}
+.notice ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.notice li{position:relative;padding-left:16px;font-size:13.5px;line-height:1.8;color:#a3b1c9}
+.notice li::before{content:"";position:absolute;left:2px;top:.72em;width:5px;height:5px;border-radius:50%;background:rgba(255,210,77,.7)}
+.notice strong{color:#e7eefb}
+code{
+  font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:.9em;
+  padding:2px 6px;border-radius:6px;color:#ffe3a0;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06);
+}
+
+/* ============ 使用说明 ============ */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.step{
+  display:flex;gap:16px;padding:22px;border-radius:16px;
+  border:1px solid var(--line);background:rgba(15,27,51,.5);
+  transition:border-color .2s ease,background .2s ease;
+}
+.step:hover{border-color:rgba(255,210,77,.26);background:rgba(19,32,58,.62)}
+.step-num{
+  font-family:ui-monospace,Consolas,monospace;font-size:26px;font-weight:800;line-height:1;
+  letter-spacing:-.02em;flex:none;
+  background:linear-gradient(180deg,#ffe17a,#ffc228);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.step h3{margin:0 0 6px;font-size:15.5px}
+.step p{margin:0;font-size:13.5px;line-height:1.75;color:#93a2bf}
+
+.callout{
+  margin-top:24px;padding:24px 26px;border-radius:18px;
+  border:1px solid rgba(91,157,255,.24);
+  background:linear-gradient(180deg,rgba(91,157,255,.08),rgba(91,157,255,.02));
+}
+.callout-head{display:flex;align-items:center;gap:9px;margin-bottom:14px;font-size:15px;font-weight:800;color:#cfe0ff}
+.callout-head svg{width:18px;height:18px;color:var(--blue)}
+.facts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:10px 22px}
+.facts li{position:relative;padding-left:18px;font-size:13.5px;line-height:1.7;color:#9fb0cc}
+.facts li::before{
+  content:"";position:absolute;left:2px;top:.62em;width:6px;height:6px;
+  border-radius:2px;background:var(--blue);transform:rotate(45deg);
+}
+
+/* ============ 课程表 JSON ============ */
+.sdk{border:1px solid var(--line);border-radius:18px;background:rgba(13,24,45,.66);overflow:hidden}
+.sdk summary{
+  list-style:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:22px 24px;transition:background .2s ease;
+}
+.sdk summary::-webkit-details-marker{display:none}
+.sdk summary:hover{background:rgba(255,255,255,.03)}
+.sum-left{display:flex;align-items:center;gap:14px;min-width:0}
+.sum-icon{
+  width:42px;height:42px;border-radius:12px;flex:none;
+  display:grid;place-items:center;color:#a9ccff;
+  background:rgba(91,157,255,.14);border:1px solid rgba(91,157,255,.28);
+}
+.sum-icon svg{width:20px;height:20px}
+.sum-left strong{display:block;font-size:15.5px}
+.sum-left small{display:block;margin-top:3px;font-size:12.5px;color:var(--muted-2)}
+.sum-plus{
+  width:30px;height:30px;border-radius:9px;flex:none;
+  display:grid;place-items:center;
+  border:1px solid var(--line-strong);color:#cfdcf4;font-size:18px;line-height:1;
+  transition:transform .25s ease,background .25s ease,color .25s ease,border-color .25s ease;
+}
+.sdk[open] .sum-plus{transform:rotate(45deg);background:rgba(255,210,77,.15);color:var(--accent);border-color:rgba(255,210,77,.42)}
+.sdk-body{padding:0 24px 24px;border-top:1px solid var(--line)}
+.sdk-note{margin:16px 0;font-size:13px;line-height:1.85;color:#93a2bf}
+.sdk-note a{color:#a9ccff;border-bottom:1px solid rgba(169,204,255,.35);transition:color .18s,border-color .18s}
+.sdk-note a:hover{color:#d6e6ff;border-color:#d6e6ff}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:13px}
+th,td{padding:11px 14px;text-align:left;vertical-align:top;border-bottom:1px solid rgba(255,255,255,.06)}
+th{
+  background:rgba(255,255,255,.04);color:#cfdcf4;
+  font-size:12.5px;font-weight:700;letter-spacing:.03em;white-space:nowrap;
+}
+td{color:#9fb0cc}
+td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:#ffe3a0;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(255,255,255,.025)}
+
+.code-block{margin-top:18px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#070d1c}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 14px;border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.035);
+  font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#8494b3;
+}
+.code-block pre{
+  margin:0;padding:18px;max-height:430px;overflow:auto;
+  font-family:ui-monospace,Consolas,"Courier New",monospace;
+  font-size:12.5px;line-height:1.75;color:#c6d4ec;tab-size:2;
+}
+.code-block pre:focus-visible{outline-offset:-2px}
+.code-block pre::-webkit-scrollbar{width:10px;height:10px}
+.code-block pre::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:8px;border:2px solid #070d1c}
+.code-block pre::-webkit-scrollbar-track{background:transparent}
+.j-key{color:#8fc6ff}
+.j-str{color:#ffe08a}
+.j-num{color:#8ee6b5}
+.j-bool{color:#ff9f9f}
+.j-null{color:#ff9f9f}
+
+/* ============ FAQ ============ */
+.narrow{max-width:860px;margin:0 auto}
+.faq-list{display:grid;gap:10px}
+.faq-item{
+  border:1px solid var(--line);border-radius:14px;
+  background:rgba(15,27,51,.5);overflow:hidden;
+  transition:border-color .2s ease,background .2s ease;
+}
+.faq-item[open]{border-color:rgba(255,210,77,.3);background:rgba(19,32,58,.72)}
+.faq-item summary{
+  list-style:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:17px 20px;font-size:14.5px;font-weight:700;color:#e6eefc;
+}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary:hover{color:#fff}
+.faq-plus{position:relative;width:16px;height:16px;flex:none}
+.faq-plus::before,.faq-plus::after{
+  content:"";position:absolute;background:#9fb0cc;border-radius:2px;
+  transition:transform .25s ease,opacity .25s ease,background .25s ease;
+}
+.faq-plus::before{left:0;top:7px;width:16px;height:2px}
+.faq-plus::after{left:7px;top:0;width:2px;height:16px}
+.faq-item[open] .faq-plus::after{transform:rotate(90deg);opacity:0}
+.faq-item[open] .faq-plus::before{background:var(--accent)}
+.faq-body{padding:0 20px 18px;font-size:13.5px;line-height:1.85;color:#9fb0cc}
+.faq-body p{margin:0}
+.faq-body p + p{margin-top:8px}
+
+/* ============ 页脚 ============ */
+.site-footer{position:relative;z-index:1;margin-top:20px;border-top:1px solid var(--line);padding:30px 0 38px}
+.footer-inner{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--muted-2);
+}
+.footer-links{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.footer-links a{transition:color .18s ease}
+.footer-links a:hover{color:var(--accent)}
+.top-link{display:inline-flex;align-items:center;gap:6px}
+.top-link svg{width:14px;height:14px}
+
+/* ============ 动效 ============ */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.features .reveal:nth-child(2),.steps .reveal:nth-child(2),.dl-grid .reveal:nth-child(2){transition-delay:.07s}
+.features .reveal:nth-child(3),.steps .reveal:nth-child(3),.dl-grid .reveal:nth-child(3){transition-delay:.14s}
+.features .reveal:nth-child(4),.steps .reveal:nth-child(4),.dl-grid .reveal:nth-child(4){transition-delay:.21s}
+.features .reveal:nth-child(5),.steps .reveal:nth-child(5){transition-delay:.28s}
+.features .reveal:nth-child(6),.steps .reveal:nth-child(6){transition-delay:.35s}
+
+@keyframes floatCard{from{transform:translateY(0) rotate(-.6deg)}to{transform:translateY(-12px) rotate(.3deg)}}
+@keyframes floatBadge{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+@keyframes pulseDot{
+  0%,100%{box-shadow:0 0 0 4px rgba(255,210,77,.15)}
+  50%{box-shadow:0 0 0 8px rgba(255,210,77,.03)}
+}
+@keyframes navIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* ============ 响应式 ============ */
+@media (max-width:1000px){
+  .hero-grid{grid-template-columns:1fr;gap:34px}
+  .hero-stage{max-width:520px;margin:0 auto;width:100%}
+  .features,.steps{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:860px){
+  .nav{
+    position:absolute;top:calc(100% + 10px);left:0;right:0;
+    display:none;flex-direction:column;align-items:stretch;gap:2px;
+    padding:10px;border-radius:14px;
+    border:1px solid var(--line-strong);background:rgba(8,15,31,.98);
+    box-shadow:0 30px 60px -24px #000;
+    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  }
+  .nav.open{display:flex;animation:navIn .2s ease}
+  .nav a{padding:12px 14px;font-size:15px;border-radius:9px}
+  .nav-toggle{display:block}
+}
+@media (max-width:680px){
+  .section{padding:64px 0}
+  .hero{padding:46px 0 56px}
+  .features,.steps,.dl-grid{grid-template-columns:1fr}
+  .facts{grid-template-columns:1fr}
+  .badge{display:none}
+  .raw-row{flex-direction:column}
+  .footer-inner{flex-direction:column;align-items:flex-start}
+  .hero-meta{gap:8px 16px}
+  .sdk summary{padding:18px;gap:10px}
+  .sdk-body{padding:0 18px 18px}
+  .sum-left small{display:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header" id="siteHeader">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top" aria-label="班级管理小师，返回顶部">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3a5 5 0 0 0-5 5v3.2L5.4 15a1 1 0 0 0 .9 1.5h11.4a1 1 0 0 0 .9-1.5L17 11.2V8a5 5 0 0 0-5-5Z"/>
+          <path d="M9.5 19a2.6 2.6 0 0 0 5 0"/>
+        </svg>
+      </span>
+      <span class="brand-text">班级管理<em>小师</em></span>
+    </a>
+
+    <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="nav" aria-label="展开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="nav" id="nav" aria-label="主导航">
+      <a href="#features">功能</a>
+      <a href="#download">下载</a>
+      <a href="#guide">使用说明</a>
+      <a href="#sdk">课程表 JSON</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ================= Hero ================= -->
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy reveal">
+        <div class="pill"><span class="dot" aria-hidden="true"></span>v1.0.0 · Windows 桌面工具</div>
+        <h1>班级管理<em>小师</em></h1>
+        <p class="lede">后台托盘常驻的上课提醒工具：多套课程表按周几自动切换，提前全屏提醒、准时响铃，还能按科目自动登录希沃。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="downloads/ClassManagerSetup.exe">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/>
+            </svg>
+            下载安装包
+          </a>
+          <a class="btn btn-ghost" href="#guide">查看使用说明</a>
+        </div>
+        <ul class="hero-meta">
+          <li>Windows 10 / 11 x64</li>
+          <li>免费 · 无广告</li>
+          <li>安装需管理员权限</li>
+        </ul>
+      </div>
+
+      <div class="hero-stage reveal" aria-hidden="true">
+        <div class="stage-glow"></div>
+        <div class="alarm-card">
+          <div class="alarm-top">
+            <span class="alarm-chip">上 课 铃 声</span>
+            <span class="alarm-time">08:00</span>
+          </div>
+          <p class="a-line1">上课时间到了，</p>
+          <p class="a-line2">请快速回到位置，做好上课准备，</p>
+          <p class="a-line3">这节课是：<b>语文</b></p>
+          <div class="a-foot">点击屏幕任意位置关闭（3 秒倒计时）｜紧急关闭：Ctrl + Alt + Shift + Q</div>
+        </div>
+        <span class="badge b1"><i></i>提前 1 分钟提醒</span>
+        <span class="badge b2"><i></i>铃声约 15 秒</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 功能 ================= -->
+  <section class="section" id="features">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="eyebrow">功能特性</p>
+        <h2>该响的时候，屏幕替你喊人</h2>
+        <p class="sub">从课程表到铃声再到希沃登录，所有功能都围绕一件事：让下一节课准时开始。</p>
+      </header>
+
+      <div class="features">
+        <article class="feature reveal">
+          <div class="f-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="16" rx="3"/>
+              <path d="M3 10h18M8 3v4M16 3v4M7 14h3M14 14h3M7 17.5h3M14 17.5h3"/>
+            </svg>
+          </div>
+          <h3>多课程表 · 周几映射</h3>
+          <p>可建立多套课程表，周一至周日分别映射到不同表，工作日与周末课表互不干扰。</p>
+        </article>
+
+        <article class="feature reveal">
+          <div class="f-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2.5" y="4" width="19" height="13" rx="2.5"/>
+              <path d="M8 21h8M12 17v4M9 8.5l4.5 2.5L9 13.5Z"/>
+            </svg>
+          </div>
+          <h3>提前 N 分钟全屏提醒</h3>
+          <p>每节课可单独设置提前分钟数，到点在所有显示器上全屏弹出，置顶显示且屏蔽 Alt+F4。</p>
+        </article>
+
+        <article class="feature reveal">
+          <div class="f-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3a5 5 0 0 0-5 5v3.2L5.4 15a1 1 0 0 0 .9 1.5h11.4a1 1 0 0 0 .9-1.5L17 11.2V8a5 5 0 0 0-5-5Z"/>
+              <path d="M9.5 19a2.6 2.6 0 0 0 5 0"/>
+              <path d="M4 4.5 5.5 6M20 4.5 18.5 6"/>
+            </svg>
+          </div>
+          <h3>约 15 秒铃声</h3>
+          <p>提醒响起时播放约 15 秒铃声，循环播放所选音频；点击屏幕后进入 3 秒倒计时自动关闭。</p>
+        </article>
+
+        <article class="feature reveal">
+          <div class="f-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18V6l10-2v12"/>
+              <circle cx="6.5" cy="18" r="2.5"/>
+              <circle cx="16.5" cy="16" r="2.5"/>
+            </svg>
+          </div>
+          <h3>自定义 MP3 铃声</h3>
+          <p>支持选择本机 MP3 / WAV 作为铃声，文件被移动或删除时自动回退到内置提示音。</p>
+        </article>
+
+        <article class="feature reveal">
+          <div class="f-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="9" cy="8" r="3.5"/>
+              <path d="M3 20a6 6 0 0 1 12 0"/>
+              <path d="m15.5 13.5 2 2 4-4.5"/>
+            </svg>
+          </div>
+          <h3>按科目希沃自动登录</h3>
+          <p>为不同科目保存对应账号，提醒触发后自动打开希沃并登录；密码用 Windows DPAPI 加密存储。</p>
+        </article>
+
+        <article class="feature reveal">
+          <div class="f-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v9"/>
+              <path d="M7 7.5a7 7 0 1 0 10 0"/>
+              <path d="M9 16h6"/>
+            </svg>
+          </div>
+          <h3>开机自启 · 托盘常驻</h3>
+          <p>随系统启动静默驻留托盘，双击图标即可打开设置；独立闹钟可补充到校、下课等时间点。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 下载 ================= -->
+  <section class="section" id="download">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="eyebrow">下载</p>
+        <h2>选择一条稳定的下载线路</h2>
+        <p class="sub">优先使用本页直下或加速链接；若全部不可用，可复制下方原始链接自行加速。</p>
+      </header>
+
+      <div class="dl-grid">
+        <article class="dl-card reveal">
+          <div class="dl-top"><span class="dl-badge">国内推荐</span><h3>加速链接</h3></div>
+          <p class="dl-url">gh-proxy.org/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe</p>
+          <div class="dl-actions">
+            <a class="btn btn-ghost btn-sm" href="https://gh-proxy.org/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe" target="_blank" rel="noopener">打开链接</a>
+            <button class="btn btn-copy" type="button" data-copy="https://gh-proxy.org/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe">复制链接</button>
+          </div>
+        </article>
+
+        <article class="dl-card reveal">
+          <div class="dl-top"><span class="dl-badge">备用</span><h3>备用镜像</h3></div>
+          <p class="dl-url">ghproxy.net/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe</p>
+          <div class="dl-actions">
+            <a class="btn btn-ghost btn-sm" href="https://ghproxy.net/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe" target="_blank" rel="noopener">打开链接</a>
+            <button class="btn btn-copy" type="button" data-copy="https://ghproxy.net/https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe">复制链接</button>
+          </div>
+        </article>
+
+        <article class="dl-card reveal">
+          <div class="dl-top"><span class="dl-badge">GitHub</span><h3>原站链接</h3></div>
+          <p class="dl-url">https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe</p>
+          <div class="dl-actions">
+            <a class="btn btn-ghost btn-sm" href="https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe" target="_blank" rel="noopener">打开链接</a>
+            <button class="btn btn-copy" type="button" data-copy="https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe">复制链接</button>
+          </div>
+        </article>
+
+        <article class="dl-card is-local reveal">
+          <div class="dl-top"><span class="dl-badge">本页直下</span><h3>站内直链</h3></div>
+          <p class="dl-url">downloads/ClassManagerSetup.exe</p>
+          <div class="dl-actions">
+            <a class="btn btn-primary btn-sm" href="downloads/ClassManagerSetup.exe" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/>
+              </svg>
+              下载安装包
+            </a>
+            <button class="btn btn-copy" type="button" data-copy="https://newcyr.github.io/class/downloads/ClassManagerSetup.exe">复制链接</button>
+          </div>
+        </article>
+      </div>
+
+      <div class="raw-box reveal">
+        <div class="raw-head">
+          <span class="raw-title">GitHub 原始下载链接</span>
+          <span class="raw-hint">只读文本框，可复制后自行加速</span>
+        </div>
+        <div class="raw-row">
+          <input id="rawLink" type="text" readonly spellcheck="false" value="https://github.com/newcyr/newcyr.github.io/releases/download/v1.0.0/ClassManagerSetup.exe" aria-label="GitHub 原始下载链接">
+          <button class="btn btn-copy" id="copyRaw" type="button">复制链接</button>
+        </div>
+      </div>
+
+      <div class="notice reveal">
+        <h3>安装前请确认</h3>
+        <ul>
+          <li><strong>校验安装包</strong>：可在 GitHub Release 页面核对文件大小与 SHA256；或在 PowerShell 执行 <code>Get-FileHash .\ClassManagerSetup.exe -Algorithm SHA256</code> 后比对。也可右键安装包 →「属性」→「数字签名」查看签名者。</li>
+          <li><strong>管理员权限</strong>：安装与首次运行需要管理员权限（用于写入程序目录及注册开机自启项）。</li>
+          <li><strong>系统要求</strong>：仅支持 Windows 10 / 11 x64，暂不提供 32 位与 ARM 版本。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 使用说明 ================= -->
+  <section class="section" id="guide">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="eyebrow">使用说明</p>
+        <h2>六步完成配置，之后交给托盘</h2>
+        <p class="sub">第一次使用只需配置一次课程表与账号，之后程序会在后台按周几自动工作。</p>
+      </header>
+
+      <ol class="steps">
+        <li class="step reveal">
+          <span class="step-num">01</span>
+          <div>
+            <h3>下载安装包</h3>
+            <p>任选上方一条下载线路，得到 <code>ClassManagerSetup.exe</code>。</p>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="step-num">02</span>
+          <div>
+            <h3>运行安装</h3>
+            <p>右键「以管理员身份运行」，按提示完成安装；首次启动会自动打开本页使用说明。</p>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="step-num">03</span>
+          <div>
+            <h3>设置课程表</h3>
+            <p>双击托盘图标打开设置，添加上课时间与科目，可建立多套课程表。</p>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="step-num">04</span>
+          <div>
+            <h3>配置周几映射</h3>
+            <p>把周一至周日分别指定到对应课程表，例如周一至周六用 A 表、周日用 B 表。</p>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="step-num">05</span>
+          <div>
+            <h3>填写希沃账号</h3>
+            <p>在账号列表按科目填写账号与密码，保存后自动以 DPAPI 加密，仅本机可解密。</p>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="step-num">06</span>
+          <div>
+            <h3>保存并测试</h3>
+            <p>点击「保存」，用托盘菜单的「立即测试全屏提醒」预览效果，建议同时开启开机自启。</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="callout reveal">
+        <div class="callout-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a5 5 0 0 0-5 5v3.2L5.4 15a1 1 0 0 0 .9 1.5h11.4a1 1 0 0 0 .9-1.5L17 11.2V8a5 5 0 0 0-5-5Z"/>
+            <path d="M9.5 19a2.6 2.6 0 0 0 5 0"/>
+          </svg>
+          全屏提醒的实际行为
+        </div>
+        <ul class="facts">
+          <li>按每节课设置的提前分钟数触发，0 表示准点提醒</li>
+          <li>覆盖所有显示器并置顶显示，屏蔽 Alt+F4 误关</li>
+          <li>铃声约 15 秒，可循环播放自定义 MP3 / WAV</li>
+          <li>点击屏幕任意位置，3 秒倒计时后自动关闭</li>
+          <li>紧急关闭快捷键：Ctrl + Alt + Shift + Q</li>
+          <li>课程提醒可同时按科目自动登录希沃（可选）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 课程表 JSON ================= -->
+  <section class="section" id="sdk">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="eyebrow">课程表 JSON</p>
+        <h2>懂 JSON？直接改文件也行</h2>
+        <p class="sub">设置界面与 JSON 字段一一对应，支持导入 / 导出，方便批量排课与多机同步。</p>
+      </header>
+
+      <details class="sdk reveal">
+        <summary>
+          <span class="sum-left">
+            <span class="sum-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m8 4-5 8 5 8M16 4l5 8-5 8M14 3l-4 18"/>
+              </svg>
+            </span>
+            <span>
+              <strong>字段说明与完整示例</strong>
+              <small>点击展开，查看课程表 JSON 结构与可直接导入的示例</small>
+            </span>
+          </span>
+          <span class="sum-plus" aria-hidden="true">+</span>
+        </summary>
+
+        <div class="sdk-body">
+          <p class="sdk-note">
+            完整文档见 <a href="sdk.md">sdk.md</a>。本地配置文件路径为
+            <code>%APPDATA%\ClassManager\config.json</code>；导入时 <code>schemaVersion</code> 必须为 <code>1</code>，
+            时间使用 24 小时制 <code>HH:mm</code>。
+          </p>
+
+          <div class="table-wrap" tabindex="0" aria-label="课程表 JSON 字段说明表">
+            <table>
+              <thead>
+                <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>schemaVersion</td><td>number</td><td>结构版本，当前固定为 <code>1</code></td></tr>
+                <tr><td>subjects</td><td>string[]</td><td>科目列表；课程条目中的新科目会自动补入</td></tr>
+                <tr><td>defaultAdvanceMinutes</td><td>number</td><td>默认提前分钟数（0–180）</td></tr>
+                <tr><td>ringtonePath</td><td>string</td><td>自定义铃声绝对路径，支持 .mp3 / .wav；留空使用内置铃声</td></tr>
+                <tr><td>timetables</td><td>Timetable[]</td><td>多套课程表</td></tr>
+                <tr><td>timetables[].id</td><td>string</td><td>课程表唯一 id，供 weekMapping 引用</td></tr>
+                <tr><td>timetables[].name</td><td>string</td><td>课程表名称</td></tr>
+                <tr><td>timetables[].entries</td><td>CourseEntry[]</td><td>上课条目，保存时按时间升序排列</td></tr>
+                <tr><td>entries[].time</td><td>string</td><td>上课时间，24 小时制 <code>HH:mm</code></td></tr>
+                <tr><td>entries[].subject</td><td>string</td><td>科目名称，对应 subjects 中的一项</td></tr>
+                <tr><td>entries[].advanceMinutes</td><td>number</td><td>该节课提前分钟数（0–180），0 表示准点</td></tr>
+                <tr><td>entries[].note</td><td>string</td><td>备注，可为空字符串</td></tr>
+                <tr><td>weekMapping</td><td>string[7]</td><td>周一至周日各自对应的课程表 id，固定 7 项</td></tr>
+                <tr><td>alarms</td><td>AlarmItem[]</td><td>独立闹钟（不依赖课程表）</td></tr>
+                <tr><td>alarms[].id</td><td>string</td><td>闹钟唯一 id</td></tr>
+                <tr><td>alarms[].time</td><td>string</td><td>闹钟时间，24 小时制 <code>HH:mm</code></td></tr>
+                <tr><td>alarms[].label</td><td>string</td><td>闹钟文字，全屏提醒中会直接显示</td></tr>
+                <tr><td>alarms[].enabled</td><td>boolean</td><td>是否启用该闹钟</td></tr>
+                <tr><td>alarms[].advanceMinutes</td><td>number</td><td>提前分钟数（0–180）</td></tr>
+                <tr><td>seewoAccounts</td><td>SeewoAccount[]</td><td>按科目保存的希沃账号</td></tr>
+                <tr><td>seewoAccounts[].subject</td><td>string</td><td>科目名称</td></tr>
+                <tr><td>seewoAccounts[].account</td><td>string</td><td>希沃账号</td></tr>
+                <tr><td>seewoAccounts[].password</td><td>string</td><td>仅内存中为明文；落盘为 DPAPI 密文（<code>dpapi:</code> 前缀）</td></tr>
+                <tr><td>seewoLoginEnabled</td><td>boolean</td><td>上课提醒触发后自动登录希沃</td></tr>
+                <tr><td>startWithWindows</td><td>boolean</td><td>开机自启（写入 HKCU Run）</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-head">
+              <span>config.example.json</span>
+              <button class="btn btn-copy btn-xs" id="copyJson" type="button">复制 JSON</button>
+            </div>
+            <pre id="jsonExample" tabindex="0" aria-label="课程表 JSON 示例"></pre>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="section" id="faq">
+    <div class="wrap narrow">
+      <header class="section-head reveal">
+        <p class="eyebrow">FAQ</p>
+        <h2>常见问题</h2>
+        <p class="sub">没响铃、没声音、希沃不登录？先看这里，大部分情况都能自行排查。</p>
+      </header>
+
+      <div class="faq-list">
+        <details class="faq-item reveal">
+          <summary><span>到点没有响铃怎么办？</span><span class="faq-plus" aria-hidden="true"></span></summary>
+          <div class="faq-body">
+            <p>依次检查：①当天是否被「周几映射」指向了正确的课程表；②修改课程表后是否点击「保存」；③托盘图标是否仍在（程序是否被退出）；④电脑是否处于休眠或关机状态；⑤系统时间与时区是否正确；⑥该节课的「提前分钟数」是否设置过大或为 0。</p>
+            <p>可用托盘菜单「立即测试全屏提醒」快速验证提醒与铃声链路。</p>
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>有提醒但铃声没声音？</span><span class="faq-plus" aria-hidden="true"></span></summary>
+          <div class="faq-body">
+            <p>请确认系统音量、输出设备与静音状态。自定义铃声若被移动或删除，程序会自动回退到内置提示音；个别编码的 MP3 可能无法播放，可转为标准 MP3 或 16-bit WAV 后再试。远程桌面或无声卡环境下也可能没有声音输出。</p>
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>电脑没装希沃，会自动登录吗？</span><span class="faq-plus" aria-hidden="true"></span></summary>
+          <div class="faq-body">
+            <p>不会。程序会从注册表与常见安装目录查找希沃客户端，未安装时自动跳过登录，不影响上课提醒，也不会弹出错误窗口。需要安装希沃白板 5 或对应希沃客户端后才能启用该功能。</p>
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>希沃密码安全吗？会不会明文保存？</span><span class="faq-plus" aria-hidden="true"></span></summary>
+          <div class="faq-body">
+            <p>密码使用 Windows DPAPI 按当前用户加密，以 <code>dpapi:</code> 密文写入 <code>%APPDATA%\ClassManager\config.json</code>，换电脑或换系统用户都无法解密；全程不联网上传。导出课程表 JSON 时默认不包含密码明文。</p>
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>能不能设置下课提醒？</span><span class="faq-plus" aria-hidden="true"></span></summary>
+          <div class="faq-body">
+            <p>课程条目只记录上课时间，不设下课时间。可以在「独立闹钟」中新增一条，例如 08:40、标签写「下课」，它同样会触发全屏提醒，只是显示的文字为闹钟标签。</p>
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>全屏提醒怎么关？如何彻底退出程序？</span><span class="faq-plus" aria-hidden="true"></span></summary>
+          <div class="faq-body">
+            <p>全屏提醒出现后，点击屏幕任意位置即可开始 3 秒倒计时关闭；也可以按 <code>Ctrl + Alt + Shift + Q</code> 紧急关闭。要彻底退出，请在任务栏托盘右键图标选择「退出」，程序会停止调度；若不想再开机自启，在设置中关闭「开机自启」。</p>
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>多显示器或希沃一体机会怎样显示？</span><span class="faq-plus" aria-hidden="true"></span></summary>
+          <div class="faq-body">
+            <p>提醒会在每块显示器上分别全屏覆盖，避免学生从副屏看到桌面；高 DPI 下按物理像素铺满，不会出现黑边或缩放错位。希沃一体机的内置屏幕同样适用。</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p style="margin:0">© 2026 班级管理小师 · GitHub Pages</p>
+    <div class="footer-links">
+      <a href="sdk.md">课程表 JSON 文档</a>
+      <a href="https://github.com/newcyr/newcyr.github.io" target="_blank" rel="noopener">GitHub 仓库</a>
+      <a class="top-link" href="#top">
+        返回顶部
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 20V5"/><path d="m6 11 6-6 6 6"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 顶部导航：滚动加深背景 ---------- */
+  var header = document.getElementById('siteHeader');
+  function onScroll() {
+    header.classList.toggle('scrolled', window.scrollY > 8);
+  }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* ---------- 移动端菜单折叠 ---------- */
+  var nav = document.getElementById('nav');
+  var navToggle = document.getElementById('navToggle');
+
+  function closeNav() {
+    nav.classList.remove('open');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-label', '展开导航菜单');
+  }
+
+  navToggle.addEventListener('click', function () {
+    var open = nav.classList.toggle('open');
+    navToggle.setAttribute('aria-expanded', String(open));
+    navToggle.setAttribute('aria-label', open ? '收起导航菜单' : '展开导航菜单');
+  });
+  nav.addEventListener('click', function (e) {
+    if (e.target.closest('a')) closeNav();
+  });
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 860) closeNav();
+  });
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeNav();
+  });
+
+  /* ---------- 进入视口淡入 ---------- */
+  var revealItems = document.querySelectorAll('.reveal');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if ('IntersectionObserver' in window && !reduceMotion) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    revealItems.forEach(function (el) { observer.observe(el); });
+  } else {
+    revealItems.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  /* ---------- 复制：优先 Clipboard API，失败时 execCommand 兜底 ---------- */
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (err) {
+      /* 权限被拒时继续使用兜底方案 */
+    }
+    return fallbackCopy(text);
+  }
+
+  // 按钮上的「已复制 / 复制失败」反馈
+  function flash(btn, ok) {
+    if (btn._resetTimer) clearTimeout(btn._resetTimer);
+    var label = btn.dataset.label || btn.textContent;
+    btn.dataset.label = label;
+    btn.textContent = ok ? '已复制' : '复制失败';
+    btn.classList.toggle('copied', ok);
+    btn.classList.toggle('failed', !ok);
+    btn._resetTimer = window.setTimeout(function () {
+      btn.textContent = label;
+      btn.classList.remove('copied', 'failed');
+    }, 1600);
+  }
+
+  document.querySelectorAll('.btn-copy[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      flash(btn, await copyText(btn.dataset.copy));
+    });
+  });
+
+  var rawInput = document.getElementById('rawLink');
+  var copyRaw = document.getElementById('copyRaw');
+  if (rawInput && copyRaw) {
+    rawInput.addEventListener('click', function () { rawInput.select(); });
+    copyRaw.addEventListener('click', async function () {
+      flash(copyRaw, await copyText(rawInput.value.trim()));
+    });
+  }
+
+  /* ---------- 示例 JSON：由对象序列化，保证页面展示内容始终合法 ---------- */
+  var sampleConfig = {
+    schemaVersion: 1,
+    subjects: ['语文', '数学', '英语', '德法', '地理', '政治', '生物'],
+    defaultAdvanceMinutes: 1,
+    ringtonePath: '',
+    timetables: [
+      {
+        id: 'tt-a',
+        name: '课程表A',
+        entries: [
+          { time: '08:00', subject: '语文', advanceMinutes: 1, note: '' }
+        ]
+      },
+      {
+        id: 'tt-b',
+        name: '课程表B',
+        entries: [
+          { time: '08:30', subject: '数学', advanceMinutes: 1, note: '' }
+        ]
+      }
+    ],
+    weekMapping: ['tt-a', 'tt-a', 'tt-a', 'tt-a', 'tt-a', 'tt-a', 'tt-b'],
+    alarms: [
+      { id: 'alarm-1', time: '07:20', label: '到校提醒', enabled: true, advanceMinutes: 0 }
+    ],
+    seewoAccounts: [
+      { subject: '语文', account: 'teacher01', password: '' }
+    ],
+    seewoLoginEnabled: true,
+    startWithWindows: true
+  };
+
+  var jsonText = JSON.stringify(sampleConfig, null, 2);
+
+  // 简单 JSON 着色：仅生成 DOM 文本节点，避免 innerHTML 注入
+  function highlightJson(text) {
+    var frag = document.createDocumentFragment();
+    var re = /("(?:\\.|[^"\\])*")(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d+)?/g;
+    var last = 0;
+    var m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) {
+        frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      }
+      if (m[1] !== undefined) {
+        var span = document.createElement('span');
+        span.className = m[2] ? 'j-key' : 'j-str';
+        span.textContent = m[1];
+        frag.appendChild(span);
+        if (m[2]) frag.appendChild(document.createTextNode(m[2]));
+      } else {
+        var token = document.createElement('span');
+        if (m[0] === 'true' || m[0] === 'false') token.className = 'j-bool';
+        else if (m[0] === 'null') token.className = 'j-null';
+        else token.className = 'j-num';
+        token.textContent = m[0];
+        frag.appendChild(token);
+      }
+      last = re.lastIndex;
+    }
+    frag.appendChild(document.createTextNode(text.slice(last)));
+    return frag;
+  }
+
+  var jsonPre = document.getElementById('jsonExample');
+  if (jsonPre) {
+    jsonPre.appendChild(highlightJson(jsonText));
+  }
+
+  var copyJson = document.getElementById('copyJson');
+  if (copyJson) {
+    copyJson.addEventListener('click', async function () {
+      flash(copyJson, await copyText(jsonText));
+    });
+  }
+})();
+</script>
+</body>
+</html>
