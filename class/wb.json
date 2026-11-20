@@ -41,5 +41,5 @@
   "alarms": [],
   "seewoAccounts": [],
   "seewoLoginEnabled": false,
-  "startWithWindows": false
+  "startWithWindows": true
 }
