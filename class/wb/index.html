@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>课程表 JSON 下载 · 班级管理小师</title>
+<style>
+  :root{
+    --accent:#2F6FED; --accent-2:#1B4FC4; --bg:#F5F7FB; --card:#FFFFFF;
+    --text:#1B2330; --muted:#667085; --line:#E4E9F2; --ok:#0F9D58; --warn:#B54708;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 "Microsoft YaHei","PingFang SC",system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 64px}
+  header{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:22px}
+  h1{font-size:26px;line-height:1.3;margin:0}
+  h1 small{display:block;font-size:13px;font-weight:400;color:var(--muted);margin-top:6px}
+  .badge{background:#EAF0FF;color:var(--accent-2);border:1px solid #CFDDFF;border-radius:999px;padding:6px 14px;font-size:13px;white-space:nowrap}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  h2{font-size:18px;margin:0 0 12px}
+  p{margin:8px 0}
+  .muted{color:var(--muted);font-size:14px}
+  .links{display:grid;gap:12px}
+  .link-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#FBFCFE}
+  .link-row .tag{font-size:12px;color:var(--muted);min-width:88px}
+  .url{flex:1 1 320px;font-family:Consolas,Menlo,monospace;font-size:12.5px;color:#344054;word-break:break-all;background:#F2F5FA;border-radius:8px;padding:8px 10px}
+  a.btn,button.btn{appearance:none;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:9px;padding:8px 14px;font-size:14px;cursor:pointer;text-decoration:none;display:inline-block}
+  a.btn.ghost,button.btn.ghost{background:#fff;color:var(--accent)}
+  a.btn:hover,button.btn:hover{filter:brightness(.96)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px;color:#344054}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:13px}
+  td.time{font-family:Consolas,Menlo,monospace;white-space:nowrap}
+  td .ring{color:var(--warn);font-size:13px;margin-left:6px}
+  details{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#FBFCFE}
+  summary{cursor:pointer;color:var(--accent-2);font-weight:600}
+  pre{margin:12px 0 0;background:#0F172A;color:#E6EDF7;border-radius:10px;padding:14px;overflow:auto;font-size:12.5px;line-height:1.6;max-height:420px}
+  ol{margin:8px 0 0 20px;padding:0}
+  ol li{margin:6px 0}
+  kbd{background:#F2F5FA;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 7px;font-size:13px;font-family:inherit}
+  .tip{border-left:3px solid var(--accent);background:#F4F7FF;padding:10px 14px;border-radius:8px;font-size:14px;color:#344054}
+  footer{color:var(--muted);font-size:13px;text-align:center;margin-top:26px}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#101828;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.25s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>课程表 JSON<small>班级管理小师 · 导入文件下载</small></h1>
+    <span class="badge">schemaVersion 1 · 提前 3 分钟提醒</span>
+  </header>
+
+  <section class="card">
+    <h2>下载</h2>
+    <p class="muted">文件名为 <b>wb.json</b>，直接导入应用即可；国内访问慢时优先用 gh-proxy 镜像。</p>
+    <div class="links">
+      <div class="link-row">
+        <span class="tag">站内直链</span>
+        <span class="url" id="u1">https://newcyr.github.io/class/wb.json</span>
+        <a class="btn" href="../wb.json" download="wb.json">下载</a>
+        <button class="btn ghost" data-copy="https://newcyr.github.io/class/wb.json">复制链接</button>
+      </div>
+      <div class="link-row">
+        <span class="tag">gh-proxy 镜像</span>
+        <span class="url" id="u2">https://gh-proxy.org/https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json</span>
+        <a class="btn" href="https://gh-proxy.org/https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json" download="wb.json">下载</a>
+        <button class="btn ghost" data-copy="https://gh-proxy.org/https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json">复制链接</button>
+      </div>
+      <div class="link-row">
+        <span class="tag">GitHub 原站</span>
+        <span class="url" id="u3">https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json</span>
+        <a class="btn ghost" href="https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json" download="wb.json">下载</a>
+        <button class="btn ghost" data-copy="https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/class/wb.json">复制链接</button>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip">周一至周六：10 节</span>
+      <span class="chip">周日：10 节</span>
+      <span class="chip">全部提前 3 分钟响铃</span>
+      <span class="chip">科目留空待填</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>课程时间</h2>
+    <p class="muted">铃声在每节课开始前 3 分钟响起，例如 08:30 的课在 08:27 提醒。</p>
+    <table>
+      <thead><tr><th>时段</th><th>周一至周六</th><th>周日</th></tr></thead>
+      <tbody>
+        <tr><td>第 1 节</td><td class="time">08:30<span class="ring">08:27 响铃</span></td><td class="time">08:00<span class="ring">07:57 响铃</span></td></tr>
+        <tr><td>第 2 节</td><td class="time">09:20<span class="ring">09:17 响铃</span></td><td class="time">08:50<span class="ring">08:47 响铃</span></td></tr>
+        <tr><td>第 3 节</td><td class="time">10:30<span class="ring">10:27 响铃</span></td><td class="time">09:40<span class="ring">09:37 响铃</span></td></tr>
+        <tr><td>第 4 节</td><td class="time">11:20<span class="ring">11:17 响铃</span></td><td class="time">10:30<span class="ring">10:27 响铃</span></td></tr>
+        <tr><td>第 5 节</td><td class="time">14:30<span class="ring">14:27 响铃</span></td><td class="time">14:30<span class="ring">14:27 响铃</span></td></tr>
+        <tr><td>第 6 节</td><td class="time">15:30<span class="ring">15:27 响铃</span></td><td class="time">15:30<span class="ring">15:27 响铃</span></td></tr>
+        <tr><td>第 7 节</td><td class="time">16:20<span class="ring">16:17 响铃</span></td><td class="time">16:20<span class="ring">16:17 响铃</span></td></tr>
+        <tr><td>第 8 节</td><td class="time">18:25<span class="ring">18:22 响铃</span></td><td class="time">18:25<span class="ring">18:22 响铃</span></td></tr>
+        <tr><td>第 9 节</td><td class="time">19:30<span class="ring">19:27 响铃</span></td><td class="time">19:30<span class="ring">19:27 响铃</span></td></tr>
+        <tr><td>第 10 节</td><td class="time">20:30<span class="ring">20:27 响铃</span></td><td class="time">20:30<span class="ring">20:27 响铃</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>导入方法</h2>
+    <ol>
+      <li>点击上方任一“下载”，保存 <b>wb.json</b>。</li>
+      <li>打开「班级管理小师」→ <b>设置</b> → <b>导入 JSON</b>。</li>
+      <li>选择刚下载的 <b>wb.json</b>，确认导入后课程表与周映射即生效。</li>
+      <li>之后在“课程表”页逐节填写科目即可，时间与提前分钟数无需再改。</li>
+    </ol>
+    <p class="tip">导入会覆盖当前课程表、周映射与闹钟配置，请先导出备份。</p>
+  </section>
+
+  <section class="card">
+    <h2>文件内容</h2>
+    <details open>
+      <summary>查看 / 复制 JSON 全文</summary>
+      <p class="muted">与“手动填写”字段完全一致，科目暂时留空。</p>
+      <button class="btn ghost" id="copyAll">复制 JSON</button>
+      <pre id="preview">加载中…</pre>
+    </details>
+  </section>
+
+  <footer>班级管理小师 · 课程表文件 wb.json</footer>
+</div>
+<div class="toast" id="toast">已复制</div>
+
+<script>
+(function(){
+  var toast=document.getElementById('toast'),timer=null;
+  function showToast(msg){
+    toast.textContent=msg||'已复制';toast.classList.add('show');
+    clearTimeout(timer);timer=setTimeout(function(){toast.classList.remove('show')},1600);
+  }
+  function copy(text){
+    if(navigator.clipboard&&window.isSecureContext){
+      return navigator.clipboard.writeText(text).then(function(){showToast('已复制')},function(){legacy(text)});
+    }
+    legacy(text);
+  }
+  function legacy(text){
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.top='-1000px';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');showToast('已复制')}catch(e){showToast('复制失败，请手动选择')}
+    document.body.removeChild(ta);
+  }
+  var buttons=document.querySelectorAll('[data-copy]');
+  for(var i=0;i<buttons.length;i++){
+    buttons[i].addEventListener('click',function(){copy(this.getAttribute('data-copy'))});
+  }
+  var pre=document.getElementById('preview');
+  fetch('../wb.json',{cache:'no-store'}).then(function(r){
+    if(!r.ok) throw new Error(r.status);
+    return r.text();
+  }).then(function(t){
+    try{pre.textContent=JSON.stringify(JSON.parse(t),null,2)}catch(e){pre.textContent=t}
+  }).catch(function(){
+    pre.textContent='无法自动加载预览，请点击上方“下载”获取 wb.json。';
+  });
+  document.getElementById('copyAll').addEventListener('click',function(){
+    copy(pre.textContent);
+  });
+})();
+</script>
+</body>
+</html>
