@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "subjects": [],
+  "defaultAdvanceMinutes": 3,
+  "ringtonePath": "",
+  "timetables": [
+    {
+      "id": "tt-a",
+      "name": "周一至周六",
+      "entries": [
+        { "time": "08:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "09:20", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "10:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "11:20", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "14:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "15:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "16:20", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "18:25", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "19:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "20:30", "subject": "", "advanceMinutes": 3, "note": "" }
+      ]
+    },
+    {
+      "id": "tt-b",
+      "name": "周日",
+      "entries": [
+        { "time": "08:00", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "08:50", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "09:40", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "10:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "14:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "15:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "16:20", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "18:25", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "19:30", "subject": "", "advanceMinutes": 3, "note": "" },
+        { "time": "20:30", "subject": "", "advanceMinutes": 3, "note": "" }
+      ]
+    }
+  ],
+  "weekMapping": ["tt-a", "tt-a", "tt-a", "tt-a", "tt-a", "tt-a", "tt-b"],
+  "alarms": [],
+  "seewoAccounts": [],
+  "seewoLoginEnabled": false,
+  "startWithWindows": false
+}
