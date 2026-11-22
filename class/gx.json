@@ -1,8 +1,8 @@
 {
-    "version":  "1.2.0",
-    "url":  "https://github.com/newcyr/ClassManager/releases/download/v1.2.0/ClassManagerSetup.exe",
-    "size":  61845364,
-    "sha256":  "23A953F34FD05FA9211FED03345B6E2E418CCBF6F7235E3139C40E8B2BD5B13E",
+    "version":  "1.2.2",
+    "url":  "https://github.com/newcyr/ClassManager/releases/download/v1.2.2/ClassManagerSetup.exe",
+    "size":  61853727,
+    "sha256":  "7117DA2059A8029F43B308CD87D3243342265F97EC561E833C7C78E7B79F347A",
     "publishedAt":  "2026-11-22",
-    "notes":  "希沃登录改用关键图标识别（不依赖绝对像素）、连堂不干预、托盘开关闹钟/登录、响铃即登录、关闭自动更新；新增定时网页（默认浏览器定时打开/关闭）；设置页增加版权署名；MIT 开源。"
+    "notes":  "希沃登录视觉模型双通道（AMD/ModelScope）自动切换、关键图标识别登录与退出、连堂不干预、响铃即登录、每日独立课表、定时网页、关闭自动更新；MIT 开源。"
 }
