@@ -109,6 +109,7 @@
     image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4.5 17 5-5 3.5 3.5 3-2.5 4 4"/></svg>',
     camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h2.8l1.4-2.2h6.6l1.4 2.2h2.8a1.5 1.5 0 0 1 1.5 1.5v7.5a1.5 1.5 0 0 1-1.5 1.5h-15a1.5 1.5 0 0 1-1.5-1.5V10a1.5 1.5 0 0 1 1.5-1.5z"/><circle cx="12" cy="13.6" r="3.1"/></svg>',
     rotate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>',
+    download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5v11M7.5 10 12 14.5 16.5 10"/><path d="M4.5 17.5v1.5A1.5 1.5 0 0 0 6 20.5h12a1.5 1.5 0 0 0 1.5-1.5v-1.5"/></svg>',
     star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.75 5.65 6.2.88-4.5 4.4 1.08 6.17L12 17.2 6.47 20.1l1.08-6.17-4.5-4.4 6.2-.88z" fill="currentColor"/></svg>',
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
   };
@@ -241,16 +242,18 @@
   }
 
   /* ---------------- image mirrors ----------------
-     前端图片优先走镜像；镜像连不上 / 卡住 / 速度低于 30KB/s 时自动切换下一个镜像，
-     两个镜像都不可用时回到官方源。 */
+     前端图片优先走 gh-proxy.org 镜像，其次 Fastly；镜像首字节超过 2.5s、
+     或下载速度 ≤50KB/s 且持续 5s 以上时自动切换下一个镜像，
+     两个镜像都不可用时直接回到官方源。 */
   const IMG_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   const MIRROR_BASES = [
-    'https://cdn.jsdelivr.net/gh/newcyr/newcyr.github.io@main/work/',
+    'https://gh-proxy.org/https://raw.githubusercontent.com/newcyr/newcyr.github.io/main/work/',
     'https://fastly.jsdelivr.net/gh/newcyr/newcyr.github.io@main/work/'
   ];
-  const MIRROR_MIN_SPEED = 30 * 1024;   // 最低 30KB/s
-  const MIRROR_STALL_MS = 6000;         // 6 秒收不到数据视为卡死
-  const MIRROR_CONNECT_MS = 10000;      // 10 秒拿不到响应视为不连通
+  const MIRROR_MIN_SPEED = 50 * 1024;   // 最低 50KB/s
+  const MIRROR_SLOW_MS = 5000;          // 低速持续 5s 判定为过慢
+  const MIRROR_STALL_MS = 5000;         // 5s 收不到数据视为卡死
+  const MIRROR_CONNECT_MS = 2500;       // 首字节超过 2.5s 视为延迟过高
   const MIRROR_TOTAL_MS = 25000;        // 单张图片最长等待
   const MIRROR_COOLDOWN = 10 * 60 * 1000;
   const mirrorState = MIRROR_BASES.map(() => ({ deadUntil: 0 }));
@@ -290,7 +293,8 @@
         chunks.push(value);
         bytes += value.byteLength;
         const elapsed = (performance.now() - started) / 1000;
-        if (elapsed >= 4 && bytes / elapsed < MIRROR_MIN_SPEED) {
+        /* 持续 5s 平均速度仍低于阈值，判定为过慢并切换下一个镜像 */
+        if (elapsed >= MIRROR_SLOW_MS / 1000 && bytes / elapsed < MIRROR_MIN_SPEED) {
           controller.abort();
           throw new Error('slow');
         }
@@ -373,9 +377,18 @@
     box.setAttribute('aria-modal', 'true');
     box.innerHTML = `<button class="close" type="button" aria-label="关闭">${ICONS.x}</button>
       <img class="lightbox-img" alt="">
-      <button class="rotate" type="button" aria-label="旋转图片" title="旋转 90°">${ICONS.rotate}<span>旋转</span></button>`;
+      <div class="lightbox-actions">
+        <button class="lb-btn rotate" type="button" aria-label="旋转图片" title="旋转 90°">${ICONS.rotate}<span>旋转</span></button>
+        <a class="lb-btn download" download aria-label="下载图片" title="下载图片">${ICONS.download}<span>下载</span></a>
+      </div>`;
     document.body.appendChild(box);
-    const close = () => { box.classList.remove('open'); box.querySelector('img').src = ''; };
+    const close = () => {
+      box.classList.remove('open');
+      const img = box.querySelector('img');
+      img.src = '';
+      const dl = box.querySelector('.download');
+      if (dl) dl.removeAttribute('href');
+    };
     box.addEventListener('click', e => {
       if (e.target === box || e.target.closest('.close')) { close(); return; }
       if (e.target.closest('.rotate')) {
@@ -390,11 +403,26 @@
     });
     return box;
   }
-  function openLightbox(src, alt) {
+  /* 从图片路径推断下载文件名 */
+  function fileNameFor(path) {
+    try {
+      const clean = String(path || '').split(/[?#]/)[0];
+      const base = clean.substring(clean.lastIndexOf('/') + 1);
+      if (base && /\.\w{2,5}$/.test(base)) return decodeURIComponent(base);
+      if (base) return decodeURIComponent(base);
+    } catch (e) {}
+    return 'image.jpg';
+  }
+  function openLightbox(src, alt, name) {
     const box = ensureLightbox();
     const img = box.querySelector('.lightbox-img');
     img.src = src;
     img.alt = alt || '';
+    const dl = box.querySelector('.download');
+    if (dl) {
+      dl.href = src || '';
+      dl.setAttribute('download', fileNameFor(name) || 'image.jpg');
+    }
     rotation = 0;
     applyRotation(box);
     box.classList.add('open');
@@ -408,16 +436,16 @@
       if (!img || img.closest('#lightbox')) return;
       e.preventDefault();
       const alt = img.getAttribute('alt');
+      const path = img.dataset.imgPath || img.getAttribute('src') || '';
       const ready = img.dataset.resolvedSrc;
-      if (ready) { openLightbox(ready, alt); return; }
-      const path = img.dataset.imgPath;
-      if (path) {
-        resolveAssetUrl(path)
-          .then(url => openLightbox(url, alt))
-          .catch(() => openLightbox(officialUrl(path), alt));
+      if (ready) { openLightbox(ready, alt, path); return; }
+      if (img.dataset.imgPath) {
+        resolveAssetUrl(img.dataset.imgPath)
+          .then(url => openLightbox(url, alt, path))
+          .catch(() => openLightbox(officialUrl(img.dataset.imgPath), alt, path));
         return;
       }
-      openLightbox(img.getAttribute('src'), alt);
+      openLightbox(img.getAttribute('src'), alt, path);
     });
   }
 
