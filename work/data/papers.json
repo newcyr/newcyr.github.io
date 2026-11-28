@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-06T07:44:40.683Z",
+  "updatedAt": "2026-11-28T00:00:00.000Z",
   "site": {
     "title": "作业答案中心",
     "subtitle": "选择试卷，查看题目与参考答案。逐题查看或整卷答案，由管理员统一设置。",
@@ -7,68 +7,95 @@
   },
   "papers": [
     {
-      "id": "p-mw4ntzo8axs",
-      "title": "历屎悲诵资料",
-      "subject": "历屎",
-      "grade": "。",
-      "date": "2026-11-06",
-      "summary": "历屎",
-      "mode": "step",
+      "id": "p-yuwen-hw",
+      "title": "语文作业",
+      "subject": "语文",
+      "grade": "七年级",
+      "date": "2026-11-28",
+      "summary": "七年级上册语文单元练习（一）（二），共 12 页，已完成答案批注。",
+      "mode": "full",
       "cover": "",
       "sections": [
         {
-          "id": "s-mw4ntzo8t7x",
-          "title": "题目与答案",
+          "id": "s-yuwen-hw",
+          "title": "语文单元练习（已批注答案）",
           "kind": "images",
-          "note": "cyrcyrgo@outlook.com",
+          "note": "按卷面页码排序，共 12 页。",
           "images": [
-            "assets/uploads/p-mw4ntzo8axs/mw4nvcy7-ylu85.jpg",
-            "assets/uploads/p-mw4ntzo8axs/mw4nvqxh-271c7.jpg",
-            "assets/uploads/p-mw4ntzo8axs/mw4nw7f4-p1sdq.jpg"
+            "assets/uploads/p-yuwen-hw/01.jpg",
+            "assets/uploads/p-yuwen-hw/02.jpg",
+            "assets/uploads/p-yuwen-hw/03.jpg",
+            "assets/uploads/p-yuwen-hw/04.jpg",
+            "assets/uploads/p-yuwen-hw/05.jpg",
+            "assets/uploads/p-yuwen-hw/06.jpg",
+            "assets/uploads/p-yuwen-hw/07.jpg",
+            "assets/uploads/p-yuwen-hw/08.jpg",
+            "assets/uploads/p-yuwen-hw/09.jpg",
+            "assets/uploads/p-yuwen-hw/10.jpg",
+            "assets/uploads/p-yuwen-hw/11.jpg",
+            "assets/uploads/p-yuwen-hw/12.jpg"
           ],
-          "questions": [
-            {
-              "id": "q-mw4ntzo850q",
-              "label": "1",
-              "stem": "",
-              "images": [],
-              "answer": "",
-              "answerImages": []
-            }
-          ]
+          "questions": []
         }
       ],
       "reviews": []
     },
     {
-      "id": "p-mw4nwjoezzw",
-      "title": "德法悲诵资料",
-      "subject": "德法",
-      "grade": "。",
-      "date": "2026-11-06",
-      "summary": "德法",
-      "mode": "step",
+      "id": "p-yingyu-hw",
+      "title": "英语作业",
+      "subject": "英语",
+      "grade": "七年级",
+      "date": "2026-11-28",
+      "summary": "英语周报 Unit 3 My School 及综合提升，共 10 页，已批注答案并订正错误（听力题留空）。",
+      "mode": "full",
       "cover": "",
       "sections": [
         {
-          "id": "s-mw4nwjoeh4z",
-          "title": "题目与答案",
+          "id": "s-yingyu-hw",
+          "title": "英语作业（已批注与订正）",
           "kind": "images",
-          "note": "cyrcyrgo@outlook.com",
+          "note": "按页序排列，共 10 页；听力题无音频未作答。",
           "images": [
-            "assets/uploads/p-mw4nwjoezzw/mw4nya0t-2mv17.jpg",
-            "assets/uploads/p-mw4nwjoezzw/mw4nyjim-i1x47.jpg"
+            "assets/uploads/p-yingyu-hw/01.jpg",
+            "assets/uploads/p-yingyu-hw/02.jpg",
+            "assets/uploads/p-yingyu-hw/03.jpg",
+            "assets/uploads/p-yingyu-hw/04.jpg",
+            "assets/uploads/p-yingyu-hw/05.jpg",
+            "assets/uploads/p-yingyu-hw/06.jpg",
+            "assets/uploads/p-yingyu-hw/07.jpg",
+            "assets/uploads/p-yingyu-hw/08.jpg",
+            "assets/uploads/p-yingyu-hw/09.jpg",
+            "assets/uploads/p-yingyu-hw/10.jpg"
           ],
-          "questions": [
-            {
-              "id": "q-mw4nwjoevko",
-              "label": "1",
-              "stem": "",
-              "images": [],
-              "answer": "",
-              "answerImages": []
-            }
-          ]
+          "questions": []
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "id": "p-shuxue-hw",
+      "title": "数学作业",
+      "subject": "数学",
+      "grade": "七年级",
+      "date": "2026-11-28",
+      "summary": "泸县二中 2026年秋期第三学月归假数学作业，共 6 页，已完成答案批注。",
+      "mode": "full",
+      "cover": "",
+      "sections": [
+        {
+          "id": "s-shuxue-hw",
+          "title": "数学作业（已批注答案）",
+          "kind": "images",
+          "note": "按卷面页码排序，共 6 页。",
+          "images": [
+            "assets/uploads/p-shuxue-hw/01.jpg",
+            "assets/uploads/p-shuxue-hw/02.jpg",
+            "assets/uploads/p-shuxue-hw/03.jpg",
+            "assets/uploads/p-shuxue-hw/04.jpg",
+            "assets/uploads/p-shuxue-hw/05.jpg",
+            "assets/uploads/p-shuxue-hw/06.jpg"
+          ],
+          "questions": []
         }
       ],
       "reviews": []
